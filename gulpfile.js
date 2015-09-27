@@ -65,4 +65,4 @@ gulp.task('watch', function() {
 	gulp.watch(allFiles, ['scripts']);
 });
 
-gulp.task('default', ['scripts', 'miniScripts'])
+gulp.task('default', ['miniScripts'])
