@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Uploader Demo</title>
+	<script type="text/javascript" src="../dist/uploader.js"></script>
+</head>
+<body>
+	<div id="upload">Upload</div>
+	<div id="upload2">Upload Folders</div>
+	<ul id="uploadList"></ul>
+	<ul id="uploadList2"></ul>
+	<script type="text/javascript">
+	var uploader = new Uploader()
+	uploader.assignBrowse(upload)
+	uploader.on('')
+	var uploader2 = new Uploader()
+	uploader2.assignBrowse(upload2, true)
+
+	function buildFileItem (ufile) {
+		
+	}
+	</script>
+</body>
+</html>

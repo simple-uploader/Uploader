@@ -1,0 +1,19 @@
+{
+  "name": "Uploader",
+  "main": "dist/Uploader.js",
+  "description": "Uploader library implements html5 file upload and provides multiple simultaneous, stable, fault tolerant and resumable uploads",
+  "authors": ["dolymood <dolymood@gmail.com>"],
+  "license": "MIT",
+  "ignore": [
+    ".*",
+    "examples",
+    "build",
+    "perf",
+    "test",
+    "gulp",
+    "gulpfile.js",
+    "*.json",
+    "*.md",
+    "*.yml"
+  ]
+}
