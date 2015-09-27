@@ -46,14 +46,14 @@ utils.extend(Uchunk.prototype, {
 
 	getParams: function () {
 		return {
-			flowChunkNumber: this.offset + 1,
-			flowChunkSize: this.uploader.opts.chunkSize,
-			flowCurrentChunkSize: this.endByte - this.startByte,
-			flowTotalSize: this.ufile.size,
-			flowIdentifier: this.ufile.uniqueIdentifier,
-			flowFilename: this.ufile.name,
-			flowRelativePath: this.ufile.relativePath,
-			flowTotalChunks: this.ufile.chunks.length
+			uChunkNumber: this.offset + 1,
+			uChunkSize: this.uploader.opts.chunkSize,
+			uCurrentChunkSize: this.endByte - this.startByte,
+			uTotalSize: this.ufile.size,
+			uIdentifier: this.ufile.uniqueIdentifier,
+			uFilename: this.ufile.name,
+			uRelativePath: this.ufile.relativePath,
+			uTotalChunks: this.ufile.chunks.length
 		}
 	},
 

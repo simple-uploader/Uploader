@@ -57,7 +57,9 @@ gulp.task('miniScripts', ['scripts'], function () {
 			preserveComments: 'license'
 		}))
 		.pipe(concat(mname))
-		.pipe(sourcemaps.write('./'))
+		.pipe(sourcemaps.write('./', {
+			includeContent: false
+		}))
 		.pipe(gulp.dest(paths.dist))
 })
 
