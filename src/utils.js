@@ -19,7 +19,7 @@ var utils = {
 	noop: function () {},
 	bind: function (fn, context) {
 		return function () {
-			return fn.apply(this, arguments)
+			return fn.apply(context, arguments)
 		}
 	},
 	preventEvent: function (evt) {

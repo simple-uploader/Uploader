@@ -28,7 +28,7 @@ var uevent = {
 					this._eventData[name].splice(i, 1)
 					return false
 				}
-			})
+			}, this)
 		} else {
 			this._eventData[name] = []
 		}

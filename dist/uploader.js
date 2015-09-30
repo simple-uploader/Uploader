@@ -41,7 +41,7 @@ utils.extend(Uchunk.prototype, {
 	_event: function (evt, args) {
 		args = utils.toArray(arguments)
 		args.unshift(this)
-		this.ufile.chunkEvent.apply(this.ufile, args)
+		this.ufile._chunkEvent.apply(this.ufile, args)
 	},
 
 	getParams: function () {
@@ -321,7 +321,7 @@ var uevent = {
 					this._eventData[name].splice(i, 1)
 					return false
 				}
-			})
+			}, this)
 		} else {
 			this._eventData[name] = []
 		}
@@ -1236,7 +1236,7 @@ var utils = {
 	noop: function () {},
 	bind: function (fn, context) {
 		return function () {
-			return fn.apply(this, arguments)
+			return fn.apply(context, arguments)
 		}
 	},
 	preventEvent: function (evt) {

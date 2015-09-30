@@ -33,7 +33,7 @@ utils.extend(Uchunk.prototype, {
 	_event: function (evt, args) {
 		args = utils.toArray(arguments)
 		args.unshift(this)
-		this.ufile.chunkEvent.apply(this.ufile, args)
+		this.ufile._chunkEvent.apply(this.ufile, args)
 	},
 
 	getParams: function () {

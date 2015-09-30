@@ -3,8 +3,7 @@
 *.yml
 build
 coverage
-dist/Uploader.js.map
-dist/Uploader.min.js.gz
+dist/uploader.min.js.map
 samples
 explorations
 perf
