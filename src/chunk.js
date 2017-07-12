@@ -1,8 +1,9 @@
 var utils = require('./utils')
 
-function Uchunk (uploader, ufile, offset) {
+function Chunk (uploader, file, offset) {
 	this.uploader = uploader
-	this.ufile = ufile
+	this.file = file
+	this.bytes = null
 	this.offset = offset
 	this.tested = false
 	this.retries = 0
@@ -13,11 +14,11 @@ function Uchunk (uploader, ufile, offset) {
 	this.total = 0
 	this.chunkSize = this.uploader.opts.chunkSize
 	this.startByte = this.offset * this.chunkSize
-	this.endByte = Math.min(this.ufile.size, (this.offset + 1) * this.chunkSize)
+	this.endByte = Math.min(this.file.size, (this.offset + 1) * this.chunkSize)
 	this.xhr = null
 }
 
-var STATUS = Uchunk.STATUS = {
+var STATUS = Chunk.STATUS = {
 	PENDING: 'pending',
 	UPLOADING: 'uploading',
 	READING: 'reading',
@@ -28,24 +29,24 @@ var STATUS = Uchunk.STATUS = {
 	RETRY: 'retry'
 }
 
-utils.extend(Uchunk.prototype, {
+utils.extend(Chunk.prototype, {
 
 	_event: function (evt, args) {
 		args = utils.toArray(arguments)
 		args.unshift(this)
-		this.ufile._chunkEvent.apply(this.ufile, args)
+		this.file._chunkEvent.apply(this.file, args)
 	},
 
 	getParams: function () {
 		return {
-			uChunkNumber: this.offset + 1,
-			uChunkSize: this.uploader.opts.chunkSize,
-			uCurrentChunkSize: this.endByte - this.startByte,
-			uTotalSize: this.ufile.size,
-			uIdentifier: this.ufile.uniqueIdentifier,
-			uFilename: this.ufile.name,
-			uRelativePath: this.ufile.relativePath,
-			uTotalChunks: this.ufile.chunks.length
+			chunkNumber: this.offset + 1,
+			chunkSize: this.uploader.opts.chunkSize,
+			currentChunkSize: this.endByte - this.startByte,
+			totalSize: this.file.size,
+			identifier: this.file.uniqueIdentifier,
+			filename: this.file.name,
+			relativePath: this.file.relativePath,
+			totalChunks: this.file.chunks.length
 		}
 	},
 
@@ -62,7 +63,7 @@ utils.extend(Uchunk.prototype, {
 		this.xhr = new XMLHttpRequest()
 		this.xhr.addEventListener('load', testHandler, false)
 		this.xhr.addEventListener('error', testHandler, false)
-		var testMethod = utils.evalOpts(this.uploader.opts.testMethod, this.ufile, this)
+		var testMethod = utils.evalOpts(this.uploader.opts.testMethod, this.file, this)
 		var data = this.prepareXhrRequest(testMethod, true)
 		this.xhr.send(data)
 
@@ -76,7 +77,7 @@ utils.extend(Uchunk.prototype, {
 				$.tested = true
 				$._event(status, $.message())
 				$.uploader.uploadNextChunk()
-			} else if (!$.ufile.paused) {
+			} else if (!$.file.paused) {
 				// Error might be caused by file pause method
 				// Chunks does not exist on the server side
 				$.tested = true
@@ -88,12 +89,12 @@ utils.extend(Uchunk.prototype, {
 	preprocessFinished: function () {
 		// Compute the endByte after the preprocess function to allow an
 		// implementer of preprocess to set the fileObj size
-		this.endByte = Math.min(this.ufile.size, (this.offset + 1) * this.chunkSize)
-		if (this.ufile.size - this.endByte < this.chunkSize &&
+		this.endByte = Math.min(this.file.size, (this.offset + 1) * this.chunkSize)
+		if (this.file.size - this.endByte < this.chunkSize &&
 				!this.uploader.opts.forceChunkSize) {
 			// The last chunk will be bigger than the chunk size,
 			// but less than 2*this.chunkSize
-			this.endByte = this.ufile.size
+			this.endByte = this.file.size
 		}
 		this.preprocessState = 2
 		this.send()
@@ -121,7 +122,7 @@ utils.extend(Uchunk.prototype, {
 		switch (this.readState) {
 			case 0:
 				this.readState = 1
-				read(this.ufile, this.startByte, this.endByte, this.fileType, this)
+				read(this.file, this.file.fileType, this.startByte, this.endByte, this)
 				return
 			case 1:
 				return
@@ -141,7 +142,7 @@ utils.extend(Uchunk.prototype, {
 		this.xhr.addEventListener('load', doneHandler, false)
 		this.xhr.addEventListener('error', doneHandler, false)
 
-		var uploadMethod = utils.evalOpts(this.uploader.opts.uploadMethod, this.ufile, this)
+		var uploadMethod = utils.evalOpts(this.uploader.opts.uploadMethod, this.file, this)
 		var data = this.prepareXhrRequest(uploadMethod, false, this.uploader.opts.method, this.bytes)
 		this.xhr.send(data)
 
@@ -245,10 +246,10 @@ utils.extend(Uchunk.prototype, {
 
 	prepareXhrRequest: function (method, isTest, paramsMethod, blob) {
 		// Add data from the query options
-		var query = utils.evalOpts(this.uploader.opts.query, this.ufile, this, isTest)
+		var query = utils.evalOpts(this.uploader.opts.query, this.file, this, isTest)
 		query = utils.extend(this.getParams(), query)
 
-		var target = utils.evalOpts(this.uploader.opts.target, this.ufile, this, isTest)
+		var target = utils.evalOpts(this.uploader.opts.target, this.file, this, isTest)
 		var data = null
 		if (method === 'GET' || paramsMethod === 'octet') {
 			// Add data from the query options
@@ -264,14 +265,14 @@ utils.extend(Uchunk.prototype, {
 			utils.each(query, function (v, k) {
 				data.append(k, v)
 			})
-			data.append(this.uploader.opts.fileParameterName, blob, this.ufile.name)
+			data.append(this.uploader.opts.fileParameterName, blob, this.file.name)
 		}
 
 		this.xhr.open(method, target, true)
 		this.xhr.withCredentials = this.uploader.opts.withCredentials
 
 		// Add data from header options
-		utils.each(utils.evalOpts(this.uploader.opts.headers, this.ufile, this, isTest), function (v, k) {
+		utils.each(utils.evalOpts(this.uploader.opts.headers, this.file, this, isTest), function (v, k) {
 			this.xhr.setRequestHeader(k, v)
 		}, this)
 
@@ -280,4 +281,4 @@ utils.extend(Uchunk.prototype, {
 
 })
 
-module.exports = Uchunk
+module.exports = Chunk

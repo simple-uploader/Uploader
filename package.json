@@ -23,6 +23,7 @@
   "bugs": "https://github.com/dolymood/Uploader/issues",
   "homepage": "https://github.com/dolymood/Uploader",
   "scripts": {
+    "build": "gulp build",
     "test": "gulp ci"
   },
   "devDependencies": {

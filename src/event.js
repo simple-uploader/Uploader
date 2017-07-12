@@ -1,6 +1,6 @@
 var each = require('./utils').each
 
-var uevent = {
+var event = {
 
 	_eventData: null,
 
@@ -46,4 +46,4 @@ var uevent = {
 	}
 }
 
-module.exports = uevent
+module.exports = event

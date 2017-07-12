@@ -1,4 +1,4 @@
 var utils = require('./utils')
-var uevent = require('./event')
+var event = require('./event')
 // inner event
-module.exports = utils.extend({}, uevent)
+module.exports = utils.extend({}, event)

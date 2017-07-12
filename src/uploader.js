@@ -1,7 +1,7 @@
 var utils = require('./utils')
-var uevent = require('./event')
-var Ufile = require('./file')
-var Uchunk = require('./chunk')
+var event = require('./event')
+var File = require('./file')
+var Chunk = require('./chunk')
 
 var version = '__VERSION__'
 
@@ -9,11 +9,11 @@ var version = '__VERSION__'
 var ie10plus = window.navigator.msPointerEnabled
 var support = (function () {
 	var sliceName = 'slice'
-	var _support = utils.isDefined(File) && utils.isDefined(Blob) &&
-								utils.isDefined(FileList)
+	var _support = utils.isDefined(window.File) && utils.isDefined(window.Blob) &&
+								utils.isDefined(window.FileList)
 	var bproto = null
 	if (_support) {
-		bproto = Blob.prototype
+		bproto = window.Blob.prototype
 		utils.each(['slice', 'webkitSlice', 'mozSlice'], function (n) {
 			if (bproto[n]) {
 				sliceName = n
@@ -44,7 +44,7 @@ function Uploader (opts) {
 	this.filePaths = {}
 	this.opts = utils.extend(Uploader.defaults, opts || {})
 
-	Ufile.call(this, this)
+	File.call(this, this)
 }
 
 /**
@@ -98,14 +98,14 @@ Uploader.defaults = {
 }
 
 Uploader.utils = utils
-Uploader.uevent = uevent
-Uploader.Ufile = Ufile
-Uploader.Uchunk = Uchunk
+Uploader.event = event
+Uploader.File = File
+Uploader.Chunk = Chunk
 
-// inherit Ufile
-Uploader.prototype = utils.extend({}, Ufile.prototype)
+// inherit file
+Uploader.prototype = utils.extend({}, File.prototype)
 // inherit event
-utils.extend(Uploader.prototype, uevent)
+utils.extend(Uploader.prototype, event)
 utils.extend(Uploader.prototype, {
 
 	constructor: Uploader,
@@ -195,7 +195,8 @@ utils.extend(Uploader.prototype, {
 	},
 
 	addFiles: function (files, evt) {
-		var ufiles = []
+		var _files = []
+		var oldFileListLen = this.fileList.length
 		utils.each(files, function (file) {
 			// Uploading empty file IE10/IE11 hangs indefinitely
 			// Directories have size `0` and name `.`
@@ -204,21 +205,27 @@ utils.extend(Uploader.prototype, {
 					!(file.size % 4096 === 0 && (file.name === '.' || file.fileName === '.')) &&
 					(this.opts.allowDuplicateUploads || !this.getFromUniqueIdentifier(this.generateUniqueIdentifier(file)))
 				) {
-				var ufile = new Ufile(this, file, this)
-				if (this._trigger('fileAdded', ufile, evt)) {
-					ufiles.push(ufile)
+				var _file = new File(this, file, this)
+				if (this._trigger('fileAdded', _file, evt)) {
+					_files.push(_file)
 				}
 			}
 		}, this)
-		if (this._trigger('filesAdded', ufiles, evt)) {
-			utils.each(ufiles, function (file) {
+		if (!_files.length) {
+			// no new files
+			return
+		}
+		// get new fileList
+		var newFileList = this.fileList.slice(oldFileListLen)
+		if (this._trigger('filesAdded', _files, newFileList, evt)) {
+			utils.each(_files, function (file) {
 				if (this.opts.singleFile && this.files.length > 0) {
 					this.removeFile(this.files[0])
 				}
 				this.files.push(file)
 			}, this)
 		}
-		this._trigger('filesSubmitted', ufiles, evt)
+		this._trigger('filesSubmitted', _files, newFileList, evt)
 	},
 
 	addFile: function (file, evt) {
@@ -248,7 +255,7 @@ utils.extend(Uploader.prototype, {
 
 	uploadNextChunk: function (preventEvents) {
 		var found = false
-		var pendingStatus = Uchunk.STATUS.PENDING
+		var pendingStatus = Chunk.STATUS.PENDING
 		if (this.opts.prioritizeFirstAndLastChunk) {
 			utils.each(this.files, function (file) {
 				if (!file.paused && file.chunks.length &&
@@ -328,7 +335,7 @@ utils.extend(Uploader.prototype, {
 		var num = 0
 		var should = true
 		var simultaneousUploads = this.opts.simultaneousUploads
-		var uploadingStatus = Uchunk.STATUS.UPLOADING
+		var uploadingStatus = Chunk.STATUS.UPLOADING
 		utils.each(this.files, function (file) {
 			if (file.isComplete()) {
 				return

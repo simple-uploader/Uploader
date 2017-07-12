@@ -1,14 +1,13 @@
 var utils = require('./utils')
-var Uchunk = require('./chunk')
+var Chunk = require('./chunk')
 
-function Ufile (uploader, file, parent) {
+function File (uploader, file, parent) {
 	this.uploader = uploader
 	this.isRoot = this.isFolder = uploader === this
 	this.parent = parent || null
 	this.files = []
 	this.fileList = []
 	this.chunks = []
-	this.bytes = null
 
 	if (this.isRoot || !file) {
 		this.file = null
@@ -23,6 +22,7 @@ function Ufile (uploader, file, parent) {
 			this.name = file.charAt(file.length - 1) === '/' ? file.substr(0, file.length - 1) : file
 		} else {
 			this.file = file
+			this.fileType = this.file.type
 			this.name = file.fileName || file.name
 			this.size = file.size
 			this.relativePath = file.relativePath || file.webkitRelativePath || this.name
@@ -43,7 +43,7 @@ function Ufile (uploader, file, parent) {
 	this.bootstrap()
 }
 
-utils.extend(Ufile.prototype, {
+utils.extend(File.prototype, {
 
 	_parseFile: function () {
 		var ppaths = parsePaths(this.relativePath)
@@ -52,7 +52,7 @@ utils.extend(Ufile.prototype, {
 			utils.each(ppaths, function (path, i) {
 				var folderFile = filePaths[path]
 				if (!folderFile) {
-					folderFile = new Ufile(this.uploader, path, this.parent)
+					folderFile = new File(this.uploader, path, this.parent)
 					filePaths[path] = folderFile
 					this._updateParentFileList(folderFile)
 				}
@@ -67,13 +67,13 @@ utils.extend(Ufile.prototype, {
 		}
 	},
 
-	_updateParentFileList: function (ufile) {
-		if (!ufile) {
-			ufile = this
+	_updateParentFileList: function (file) {
+		if (!file) {
+			file = this
 		}
 		var p = this.parent
 		if (p) {
-			p.fileList.push(ufile)
+			p.fileList.push(file)
 			while (p && !p.isRoot) {
 				p.files.push(this)
 				p = p.parent
@@ -108,7 +108,7 @@ utils.extend(Ufile.prototype, {
 		var round = opts.forceChunkSize ? Math.ceil : Math.floor
 		var chunks = Math.max(round(this.size / opts.chunkSize), 1)
 		for (var offset = 0; offset < chunks; offset++) {
-			this.chunks.push(new Uchunk(this.uploader, this, offset))
+			this.chunks.push(new Chunk(this.uploader, this, offset))
 		}
 	},
 
@@ -127,7 +127,7 @@ utils.extend(Ufile.prototype, {
 
 	_chunkEvent: function (chunk, evt, message) {
 		var uploader = this.uploader
-		var STATUS = Uchunk.STATUS
+		var STATUS = Chunk.STATUS
 		switch (evt) {
 			case STATUS.PROGRESS:
 				if (Date.now() - this._lastProgressCallback < uploader.opts.progressCallbacksInterval) {
@@ -172,7 +172,7 @@ utils.extend(Ufile.prototype, {
 				return false
 			}
 		}, function () {
-			var STATUS = Uchunk.STATUS
+			var STATUS = Chunk.STATUS
 			utils.each(this.chunks, function (chunk) {
 				var status = chunk.status()
 				if (status === STATUS.PENDING || status === STATUS.UPLOADING || status === STATUS.READING || chunk.preprocessState === 1 || chunk.readState === 1) {
@@ -192,7 +192,7 @@ utils.extend(Ufile.prototype, {
 				return false
 			}
 		}, function () {
-			var uploadingStatus = Uchunk.STATUS.UPLOADING
+			var uploadingStatus = Chunk.STATUS.UPLOADING
 			utils.each(this.chunks, function (chunk) {
 				if (chunk.status() === uploadingStatus) {
 					uploading = true
@@ -251,7 +251,7 @@ utils.extend(Ufile.prototype, {
 		if (reset) {
 			this.chunks = []
 		}
-		var uploadingStatus = Uchunk.STATUS.UPLOADING
+		var uploadingStatus = Chunk.STATUS.UPLOADING
 		utils.each(chunks, function (c) {
 			if (c.status() === uploadingStatus) {
 				c.abort()
@@ -303,6 +303,19 @@ utils.extend(Ufile.prototype, {
 			size += this.size
 		})
 		return size
+	},
+
+	getFormatSize: function () {
+		var size = this.getSize()
+		if (size < 1024) {
+			return size + ' bytes'
+		} else if (size < 1024 * 1024) {
+			return (size / 1024.0).toFixed(0) + ' KB'
+		} else if (size < 1024 * 1024 * 1024) {
+			return (size / 1024.0 / 1024.0).toFixed(1) + ' MB'
+		} else {
+			return (size / 1024.0 / 1024.0 / 1024.0).toFixed(1) + ' GB'
+		}
 	},
 
 	sizeUploaded: function () {
@@ -405,7 +418,7 @@ utils.extend(Ufile.prototype, {
 
 })
 
-module.exports = Ufile
+module.exports = File
 
 function parsePaths (path) {
 	var ret = []

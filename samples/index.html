@@ -9,16 +9,31 @@
 	<div id="upload">Upload</div>
 	<div id="upload2">Upload Folders</div>
 	<ul id="uploadList"></ul>
-	<ul id="uploadList2"></ul>
+	<button id="uploadBtn">upload now</button>
 	<script type="text/javascript">
 	var uploader = new Uploader()
 	uploader.assignBrowse(upload)
-	uploader.on('')
-	var uploader2 = new Uploader()
-	uploader2.assignBrowse(upload2, true)
-
-	function buildFileItem (ufile) {
-		
+	uploader.assignBrowse(upload2, true)
+	uploader.on('filesAdded', function (files, fileList) {
+		console.log('uploader filesAdded', arguments)
+		uploadList.innerHTML += buildFileItem(fileList)
+	})
+	uploader.on('filesSubmitted', function () {
+		console.log('uploader filesSubmitted', arguments)
+	})
+	uploadBtn.onclick = function () {
+		uploader.upload()
+	}
+	function buildFileItem (fileList) {
+		return fileList.map(function(file) {
+			return (
+				'<li>' +
+					'<i>' + (file.isFolder ? '📂' : '📃') + '</i>' +
+					file.name + ' ' +
+					file.getFormatSize() + ' ' +
+				'</li>'
+			)
+		}).join('')
 	}
 	</script>
 </body>

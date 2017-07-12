@@ -8,9 +8,10 @@
 !function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.Uploader=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 var utils = _dereq_('./utils')
 
-function Uchunk (uploader, ufile, offset) {
+function Chunk (uploader, file, offset) {
 	this.uploader = uploader
-	this.ufile = ufile
+	this.file = file
+	this.bytes = null
 	this.offset = offset
 	this.tested = false
 	this.retries = 0
@@ -21,11 +22,11 @@ function Uchunk (uploader, ufile, offset) {
 	this.total = 0
 	this.chunkSize = this.uploader.opts.chunkSize
 	this.startByte = this.offset * this.chunkSize
-	this.endByte = Math.min(this.ufile.size, (this.offset + 1) * this.chunkSize)
+	this.endByte = Math.min(this.file.size, (this.offset + 1) * this.chunkSize)
 	this.xhr = null
 }
 
-var STATUS = Uchunk.STATUS = {
+var STATUS = Chunk.STATUS = {
 	PENDING: 'pending',
 	UPLOADING: 'uploading',
 	READING: 'reading',
@@ -36,24 +37,24 @@ var STATUS = Uchunk.STATUS = {
 	RETRY: 'retry'
 }
 
-utils.extend(Uchunk.prototype, {
+utils.extend(Chunk.prototype, {
 
 	_event: function (evt, args) {
 		args = utils.toArray(arguments)
 		args.unshift(this)
-		this.ufile._chunkEvent.apply(this.ufile, args)
+		this.file._chunkEvent.apply(this.file, args)
 	},
 
 	getParams: function () {
 		return {
-			uChunkNumber: this.offset + 1,
-			uChunkSize: this.uploader.opts.chunkSize,
-			uCurrentChunkSize: this.endByte - this.startByte,
-			uTotalSize: this.ufile.size,
-			uIdentifier: this.ufile.uniqueIdentifier,
-			uFilename: this.ufile.name,
-			uRelativePath: this.ufile.relativePath,
-			uTotalChunks: this.ufile.chunks.length
+			chunkNumber: this.offset + 1,
+			chunkSize: this.uploader.opts.chunkSize,
+			currentChunkSize: this.endByte - this.startByte,
+			totalSize: this.file.size,
+			identifier: this.file.uniqueIdentifier,
+			filename: this.file.name,
+			relativePath: this.file.relativePath,
+			totalChunks: this.file.chunks.length
 		}
 	},
 
@@ -70,7 +71,7 @@ utils.extend(Uchunk.prototype, {
 		this.xhr = new XMLHttpRequest()
 		this.xhr.addEventListener('load', testHandler, false)
 		this.xhr.addEventListener('error', testHandler, false)
-		var testMethod = utils.evalOpts(this.uploader.opts.testMethod, this.ufile, this)
+		var testMethod = utils.evalOpts(this.uploader.opts.testMethod, this.file, this)
 		var data = this.prepareXhrRequest(testMethod, true)
 		this.xhr.send(data)
 
@@ -84,7 +85,7 @@ utils.extend(Uchunk.prototype, {
 				$.tested = true
 				$._event(status, $.message())
 				$.uploader.uploadNextChunk()
-			} else if (!$.ufile.paused) {
+			} else if (!$.file.paused) {
 				// Error might be caused by file pause method
 				// Chunks does not exist on the server side
 				$.tested = true
@@ -96,12 +97,12 @@ utils.extend(Uchunk.prototype, {
 	preprocessFinished: function () {
 		// Compute the endByte after the preprocess function to allow an
 		// implementer of preprocess to set the fileObj size
-		this.endByte = Math.min(this.ufile.size, (this.offset + 1) * this.chunkSize)
-		if (this.ufile.size - this.endByte < this.chunkSize &&
+		this.endByte = Math.min(this.file.size, (this.offset + 1) * this.chunkSize)
+		if (this.file.size - this.endByte < this.chunkSize &&
 				!this.uploader.opts.forceChunkSize) {
 			// The last chunk will be bigger than the chunk size,
 			// but less than 2*this.chunkSize
-			this.endByte = this.ufile.size
+			this.endByte = this.file.size
 		}
 		this.preprocessState = 2
 		this.send()
@@ -129,7 +130,7 @@ utils.extend(Uchunk.prototype, {
 		switch (this.readState) {
 			case 0:
 				this.readState = 1
-				read(this.ufile, this.startByte, this.endByte, this.fileType, this)
+				read(this.file, this.file.fileType, this.startByte, this.endByte, this)
 				return
 			case 1:
 				return
@@ -149,7 +150,7 @@ utils.extend(Uchunk.prototype, {
 		this.xhr.addEventListener('load', doneHandler, false)
 		this.xhr.addEventListener('error', doneHandler, false)
 
-		var uploadMethod = utils.evalOpts(this.uploader.opts.uploadMethod, this.ufile, this)
+		var uploadMethod = utils.evalOpts(this.uploader.opts.uploadMethod, this.file, this)
 		var data = this.prepareXhrRequest(uploadMethod, false, this.uploader.opts.method, this.bytes)
 		this.xhr.send(data)
 
@@ -253,10 +254,10 @@ utils.extend(Uchunk.prototype, {
 
 	prepareXhrRequest: function (method, isTest, paramsMethod, blob) {
 		// Add data from the query options
-		var query = utils.evalOpts(this.uploader.opts.query, this.ufile, this, isTest)
+		var query = utils.evalOpts(this.uploader.opts.query, this.file, this, isTest)
 		query = utils.extend(this.getParams(), query)
 
-		var target = utils.evalOpts(this.uploader.opts.target, this.ufile, this, isTest)
+		var target = utils.evalOpts(this.uploader.opts.target, this.file, this, isTest)
 		var data = null
 		if (method === 'GET' || paramsMethod === 'octet') {
 			// Add data from the query options
@@ -272,14 +273,14 @@ utils.extend(Uchunk.prototype, {
 			utils.each(query, function (v, k) {
 				data.append(k, v)
 			})
-			data.append(this.uploader.opts.fileParameterName, blob, this.ufile.name)
+			data.append(this.uploader.opts.fileParameterName, blob, this.file.name)
 		}
 
 		this.xhr.open(method, target, true)
 		this.xhr.withCredentials = this.uploader.opts.withCredentials
 
 		// Add data from header options
-		utils.each(utils.evalOpts(this.uploader.opts.headers, this.ufile, this, isTest), function (v, k) {
+		utils.each(utils.evalOpts(this.uploader.opts.headers, this.file, this, isTest), function (v, k) {
 			this.xhr.setRequestHeader(k, v)
 		}, this)
 
@@ -288,12 +289,12 @@ utils.extend(Uchunk.prototype, {
 
 })
 
-module.exports = Uchunk
+module.exports = Chunk
 
 },{"./utils":5}],2:[function(_dereq_,module,exports){
 var each = _dereq_('./utils').each
 
-var uevent = {
+var event = {
 
 	_eventData: null,
 
@@ -339,13 +340,13 @@ var uevent = {
 	}
 }
 
-module.exports = uevent
+module.exports = event
 
 },{"./utils":5}],3:[function(_dereq_,module,exports){
 var utils = _dereq_('./utils')
-var uevent = _dereq_('./event')
-var Ufile = _dereq_('./file')
-var Uchunk = _dereq_('./chunk')
+var event = _dereq_('./event')
+var File = _dereq_('./file')
+var Chunk = _dereq_('./chunk')
 
 var version = '0.0.1'
 
@@ -353,11 +354,11 @@ var version = '0.0.1'
 var ie10plus = window.navigator.msPointerEnabled
 var support = (function () {
 	var sliceName = 'slice'
-	var _support = utils.isDefined(File) && utils.isDefined(Blob) &&
-								utils.isDefined(FileList)
+	var _support = utils.isDefined(window.File) && utils.isDefined(window.Blob) &&
+								utils.isDefined(window.FileList)
 	var bproto = null
 	if (_support) {
-		bproto = Blob.prototype
+		bproto = window.Blob.prototype
 		utils.each(['slice', 'webkitSlice', 'mozSlice'], function (n) {
 			if (bproto[n]) {
 				sliceName = n
@@ -388,7 +389,7 @@ function Uploader (opts) {
 	this.filePaths = {}
 	this.opts = utils.extend(Uploader.defaults, opts || {})
 
-	Ufile.call(this, this)
+	File.call(this, this)
 }
 
 /**
@@ -442,14 +443,14 @@ Uploader.defaults = {
 }
 
 Uploader.utils = utils
-Uploader.uevent = uevent
-Uploader.Ufile = Ufile
-Uploader.Uchunk = Uchunk
+Uploader.event = event
+Uploader.File = File
+Uploader.Chunk = Chunk
 
-// inherit Ufile
-Uploader.prototype = utils.extend({}, Ufile.prototype)
+// inherit file
+Uploader.prototype = utils.extend({}, File.prototype)
 // inherit event
-utils.extend(Uploader.prototype, uevent)
+utils.extend(Uploader.prototype, event)
 utils.extend(Uploader.prototype, {
 
 	constructor: Uploader,
@@ -539,7 +540,8 @@ utils.extend(Uploader.prototype, {
 	},
 
 	addFiles: function (files, evt) {
-		var ufiles = []
+		var _files = []
+		var oldFileListLen = this.fileList.length
 		utils.each(files, function (file) {
 			// Uploading empty file IE10/IE11 hangs indefinitely
 			// Directories have size `0` and name `.`
@@ -548,21 +550,27 @@ utils.extend(Uploader.prototype, {
 					!(file.size % 4096 === 0 && (file.name === '.' || file.fileName === '.')) &&
 					(this.opts.allowDuplicateUploads || !this.getFromUniqueIdentifier(this.generateUniqueIdentifier(file)))
 				) {
-				var ufile = new Ufile(this, file, this)
-				if (this._trigger('fileAdded', ufile, evt)) {
-					ufiles.push(ufile)
+				var _file = new File(this, file, this)
+				if (this._trigger('fileAdded', _file, evt)) {
+					_files.push(_file)
 				}
 			}
 		}, this)
-		if (this._trigger('filesAdded', ufiles, evt)) {
-			utils.each(ufiles, function (file) {
+		if (!_files.length) {
+			// no new files
+			return
+		}
+		// get new fileList
+		var newFileList = this.fileList.slice(oldFileListLen)
+		if (this._trigger('filesAdded', _files, newFileList, evt)) {
+			utils.each(_files, function (file) {
 				if (this.opts.singleFile && this.files.length > 0) {
 					this.removeFile(this.files[0])
 				}
 				this.files.push(file)
 			}, this)
 		}
-		this._trigger('filesSubmitted', ufiles, evt)
+		this._trigger('filesSubmitted', _files, newFileList, evt)
 	},
 
 	addFile: function (file, evt) {
@@ -592,7 +600,7 @@ utils.extend(Uploader.prototype, {
 
 	uploadNextChunk: function (preventEvents) {
 		var found = false
-		var pendingStatus = Uchunk.STATUS.PENDING
+		var pendingStatus = Chunk.STATUS.PENDING
 		if (this.opts.prioritizeFirstAndLastChunk) {
 			utils.each(this.files, function (file) {
 				if (!file.paused && file.chunks.length &&
@@ -672,7 +680,7 @@ utils.extend(Uploader.prototype, {
 		var num = 0
 		var should = true
 		var simultaneousUploads = this.opts.simultaneousUploads
-		var uploadingStatus = Uchunk.STATUS.UPLOADING
+		var uploadingStatus = Chunk.STATUS.UPLOADING
 		utils.each(this.files, function (file) {
 			if (file.isComplete()) {
 				return
@@ -791,16 +799,15 @@ module.exports = Uploader
 
 },{"./chunk":1,"./event":2,"./file":4,"./utils":5}],4:[function(_dereq_,module,exports){
 var utils = _dereq_('./utils')
-var Uchunk = _dereq_('./chunk')
+var Chunk = _dereq_('./chunk')
 
-function Ufile (uploader, file, parent) {
+function File (uploader, file, parent) {
 	this.uploader = uploader
 	this.isRoot = this.isFolder = uploader === this
 	this.parent = parent || null
 	this.files = []
 	this.fileList = []
 	this.chunks = []
-	this.bytes = null
 
 	if (this.isRoot || !file) {
 		this.file = null
@@ -815,6 +822,7 @@ function Ufile (uploader, file, parent) {
 			this.name = file.charAt(file.length - 1) === '/' ? file.substr(0, file.length - 1) : file
 		} else {
 			this.file = file
+			this.fileType = this.file.type
 			this.name = file.fileName || file.name
 			this.size = file.size
 			this.relativePath = file.relativePath || file.webkitRelativePath || this.name
@@ -835,7 +843,7 @@ function Ufile (uploader, file, parent) {
 	this.bootstrap()
 }
 
-utils.extend(Ufile.prototype, {
+utils.extend(File.prototype, {
 
 	_parseFile: function () {
 		var ppaths = parsePaths(this.relativePath)
@@ -844,7 +852,7 @@ utils.extend(Ufile.prototype, {
 			utils.each(ppaths, function (path, i) {
 				var folderFile = filePaths[path]
 				if (!folderFile) {
-					folderFile = new Ufile(this.uploader, path, this.parent)
+					folderFile = new File(this.uploader, path, this.parent)
 					filePaths[path] = folderFile
 					this._updateParentFileList(folderFile)
 				}
@@ -859,13 +867,13 @@ utils.extend(Ufile.prototype, {
 		}
 	},
 
-	_updateParentFileList: function (ufile) {
-		if (!ufile) {
-			ufile = this
+	_updateParentFileList: function (file) {
+		if (!file) {
+			file = this
 		}
 		var p = this.parent
 		if (p) {
-			p.fileList.push(ufile)
+			p.fileList.push(file)
 			while (p && !p.isRoot) {
 				p.files.push(this)
 				p = p.parent
@@ -900,7 +908,7 @@ utils.extend(Ufile.prototype, {
 		var round = opts.forceChunkSize ? Math.ceil : Math.floor
 		var chunks = Math.max(round(this.size / opts.chunkSize), 1)
 		for (var offset = 0; offset < chunks; offset++) {
-			this.chunks.push(new Uchunk(this.uploader, this, offset))
+			this.chunks.push(new Chunk(this.uploader, this, offset))
 		}
 	},
 
@@ -919,7 +927,7 @@ utils.extend(Ufile.prototype, {
 
 	_chunkEvent: function (chunk, evt, message) {
 		var uploader = this.uploader
-		var STATUS = Uchunk.STATUS
+		var STATUS = Chunk.STATUS
 		switch (evt) {
 			case STATUS.PROGRESS:
 				if (Date.now() - this._lastProgressCallback < uploader.opts.progressCallbacksInterval) {
@@ -964,7 +972,7 @@ utils.extend(Ufile.prototype, {
 				return false
 			}
 		}, function () {
-			var STATUS = Uchunk.STATUS
+			var STATUS = Chunk.STATUS
 			utils.each(this.chunks, function (chunk) {
 				var status = chunk.status()
 				if (status === STATUS.PENDING || status === STATUS.UPLOADING || status === STATUS.READING || chunk.preprocessState === 1 || chunk.readState === 1) {
@@ -984,7 +992,7 @@ utils.extend(Ufile.prototype, {
 				return false
 			}
 		}, function () {
-			var uploadingStatus = Uchunk.STATUS.UPLOADING
+			var uploadingStatus = Chunk.STATUS.UPLOADING
 			utils.each(this.chunks, function (chunk) {
 				if (chunk.status() === uploadingStatus) {
 					uploading = true
@@ -1043,7 +1051,7 @@ utils.extend(Ufile.prototype, {
 		if (reset) {
 			this.chunks = []
 		}
-		var uploadingStatus = Uchunk.STATUS.UPLOADING
+		var uploadingStatus = Chunk.STATUS.UPLOADING
 		utils.each(chunks, function (c) {
 			if (c.status() === uploadingStatus) {
 				c.abort()
@@ -1095,6 +1103,19 @@ utils.extend(Ufile.prototype, {
 			size += this.size
 		})
 		return size
+	},
+
+	getFormatSize: function () {
+		var size = this.getSize()
+		if (size < 1024) {
+			return size + ' bytes'
+		} else if (size < 1024 * 1024) {
+			return (size / 1024.0).toFixed(0) + ' KB'
+		} else if (size < 1024 * 1024 * 1024) {
+			return (size / 1024.0 / 1024.0).toFixed(1) + ' MB'
+		} else {
+			return (size / 1024.0 / 1024.0 / 1024.0).toFixed(1) + ' GB'
+		}
 	},
 
 	sizeUploaded: function () {
@@ -1197,7 +1218,7 @@ utils.extend(Ufile.prototype, {
 
 })
 
-module.exports = Ufile
+module.exports = File
 
 function parsePaths (path) {
 	var ret = []
@@ -1272,9 +1293,17 @@ var utils = {
 	},
 
 	each: function (ary, func, context) {
-		for (var i = 0, len = ary.length; i < len; i++) {
-			if (func.call(context, ary[i], i, ary) === false) {
-				break
+		if (utils.isDefined(ary.length)) {
+			for (var i = 0, len = ary.length; i < len; i++) {
+				if (func.call(context, ary[i], i, ary) === false) {
+					break
+				}
+			}
+		} else {
+			for (var k in ary) {
+				if (func.call(context, ary[k], k, ary) === false) {
+					break
+				}
 			}
 		}
 	},
