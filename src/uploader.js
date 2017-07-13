@@ -204,7 +204,7 @@ utils.extend(Uploader.prototype, {
 			if ((!ie10plus || ie10plus && file.size > 0) &&
 					!(file.size % 4096 === 0 && (file.name === '.' || file.fileName === '.')) &&
 					(this.opts.allowDuplicateUploads || !this.getFromUniqueIdentifier(this.generateUniqueIdentifier(file)))
-				) {
+			) {
 				var _file = new File(this, file, this)
 				if (this._trigger('fileAdded', _file, evt)) {
 					_files.push(_file)

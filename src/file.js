@@ -268,8 +268,7 @@ utils.extend(File.prototype, {
 			totalDone += file.progress() * file.size
 			totalSize += file.size
 			if (index === this.files.length - 1) {
-				ret = totalSize > 0 ? totalDone / totalSize
-						: this.isComplete() ? 1 : 0
+				ret = totalSize > 0 ? totalDone / totalSize : this.isComplete() ? 1 : 0
 			}
 		}, function () {
 			if (this.error) {

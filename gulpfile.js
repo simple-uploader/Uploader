@@ -3,6 +3,7 @@ var gulp = require('gulp')
 var eslint = require('gulp-eslint')
 var browserify = require('gulp-browserify')
 var header = require('gulp-header')
+var pump = require('pump')
 var uglify = require('gulp-uglify')
 var concat = require('gulp-concat')
 var sourcemaps = require('gulp-sourcemaps')
@@ -54,17 +55,21 @@ gulp.task('scripts', ['eslint'], function() {
 		.pipe(gulp.dest(paths.dist))
 });
 
-gulp.task('build', ['scripts'], function () {
-	return gulp.src(paths.dist + fname)
-		.pipe(sourcemaps.init())
-		.pipe(uglify({
-			preserveComments: 'license'
-		}))
-		.pipe(concat(mname))
-		.pipe(sourcemaps.write('./', {
+gulp.task('build', ['scripts'], function (cb) {
+	pump([
+		gulp.src(paths.dist + fname),
+		sourcemaps.init(),
+		uglify({
+			output: {
+				comments: /^!/
+			}
+		}),
+		concat(mname),
+		sourcemaps.write('./', {
 			includeContent: false
-		}))
-		.pipe(gulp.dest(paths.dist))
+		}),
+		gulp.dest(paths.dist)
+	], cb)
 })
 
 var karmaBaseConfig = {

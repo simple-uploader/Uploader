@@ -549,7 +549,7 @@ utils.extend(Uploader.prototype, {
 			if ((!ie10plus || ie10plus && file.size > 0) &&
 					!(file.size % 4096 === 0 && (file.name === '.' || file.fileName === '.')) &&
 					(this.opts.allowDuplicateUploads || !this.getFromUniqueIdentifier(this.generateUniqueIdentifier(file)))
-				) {
+			) {
 				var _file = new File(this, file, this)
 				if (this._trigger('fileAdded', _file, evt)) {
 					_files.push(_file)
@@ -1068,8 +1068,7 @@ utils.extend(File.prototype, {
 			totalDone += file.progress() * file.size
 			totalSize += file.size
 			if (index === this.files.length - 1) {
-				ret = totalSize > 0 ? totalDone / totalSize
-						: this.isComplete() ? 1 : 0
+				ret = totalSize > 0 ? totalDone / totalSize : this.isComplete() ? 1 : 0
 			}
 		}, function () {
 			if (this.error) {
