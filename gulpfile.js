@@ -9,7 +9,7 @@ var sourcemaps = require('gulp-sourcemaps')
 
 var spawn = require('child_process').spawn
 var _ = require('./src/utils')
-var karma = require('karma').server
+var Server = require('karma').Server
 
 var name = 'uploader'
 var NAME = name.charAt(0).toUpperCase() + name.substr(1)
@@ -68,17 +68,27 @@ gulp.task('build', ['scripts'], function () {
 })
 
 var karmaBaseConfig = {
+	basePath: '',
 	frameworks: ['jasmine', 'commonjs'],
 	files: [
-		'node_modules/sinon/pkg/sinon-1.17.1.js',
+		'node_modules/sinon/pkg/sinon-2.3.7.js',
 		'test/unit/lib/FakeXMLHttpRequestUpload.js',
 		'src/**/*.js',
 		'test/unit/specs/**/*.js'
 	],
+	// list of files to exclude
+    exclude: [
+    ],
 	preprocessors: {
 		'src/**/*.js': ['commonjs'],
 		'test/unit/specs/**/*.js': ['commonjs']
 	},
+	// web server port
+    port: 9876,
+    // enable / disable colors in the output (reporters and logs)
+    colors: true,
+    autoWatch: false,
+    captureTimeout: 60000,
 	singleRun: true
 }
 
@@ -87,7 +97,7 @@ gulp.task('unit', function (done) {
 		browsers: ['Chrome', 'Firefox', 'Safari'],
 		reporters: ['progress']
 	})
-	karma.start(karmaUnitConfig, done)
+	new Server(karmaUnitConfig, done).start()
 })
 
 gulp.task('cover', function (done) {
@@ -111,11 +121,7 @@ gulp.task('cover', function (done) {
 			]
 		}
 	})
-	karma.start(karmaCoverageConfig, done)
-})
-
-gulp.task('karma', function (done) {
-	karma.start(karmaBaseConfig, done)
+	new Server(karmaCoverageConfig, done).start()
 })
 
 gulp.task('sauce', function (done) {
@@ -147,26 +153,40 @@ gulp.task('sauce', function (done) {
 			platform: 'Windows 8.1',
 			version: '11'
 		},
+		sl_edge: {
+			base: 'SauceLabs',
+			browserName: 'MicrosoftEdge',
+			platform: 'Windows 10'
+		},
 
-		sl_ios_safari: {
+		sl_ios_safari_8: {
 			base: 'SauceLabs',
 			browserName: 'iphone',
-			platform: 'OS X 10.9',
-			version: '7.1'
+			version: '8.4'
 		},
-		sl_android: {
+		sl_ios_safari_9: {
+			base: 'SauceLabs',
+			browserName: 'iphone',
+			version: '9.3'
+		},
+		sl_android_4_4: {
 			base: 'SauceLabs',
 			browserName: 'android',
-			platform: 'Linux',
-			version: '4.2'
+			version: '4.4'
+		},
+		sl_android_5_1: {
+			base: 'SauceLabs',
+			browserName: 'android',
+			version: '5.1'
 		}
 	}
 	var sauceConfig = _.extend({}, karmaBaseConfig, {
 		sauceLabs: {
 			testName: 'uploader unit tests',
 			recordScreenshots: false,
+			startConnect: false,
 			tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
-			build: process.env.TRAVIS_JOB_ID || Date.now(),
+			build: process.env.TRAVIS_BUILD_NUMBER || process.env.SAUCE_BUILD_ID || Date.now(),
 			username: 'dolymood',
 			accessKey: '297fafe2-fa71-4239-9726-5c46dd8a467b'
 		},
@@ -181,18 +201,8 @@ gulp.task('sauce', function (done) {
 
 gulp.task('test', ['unit', 'cover'])
 
-gulp.task('testSpecs', function () {
-	return gulp.src('test/unit/specs/*.js')
-		.pipe(browserify({
-			debug: false
-		}))
-		.pipe(concat('specs.js', {newLine: ';'}))
-		.pipe(gulp.dest('test/unit/'))
-})
-
 gulp.task('watch', function () {
 	gulp.watch(allFiles, ['scripts'])
-	gulp.watch('test/unit/specs/**/*.js', ['testSpecs'])
 })
 
 gulp.task('default', ['build', 'test'])
