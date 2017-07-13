@@ -1,8 +1,13 @@
 var Uploader = require('../../../src/uploader')
 
+var File = function (b, name) {
+	var blob = new Blob(b)
+	blob.name = name
+	return blob
+}
 describe('chunk', function () {
 
-	var uploader = new Uploader()
+	var uploader
 	var xhr
 	var requests = []
 	beforeEach(function () {
@@ -43,9 +48,9 @@ describe('chunk', function () {
 		expect(uchunk.sizeUploaded()).toBe(0)
 		expect(uchunk.message()).toBe('')
 		var params = uchunk.getParams()
-		expect(params.uFilename).toBe(file.name)
-		expect(params.uRelativePath).toBe(file.name)
-		expect(params.uTotalChunks).toBe(1)
+		expect(params.filename).toBe(file.name)
+		expect(params.relativePath).toBe(file.name)
+		expect(params.totalChunks).toBe(1)
 	})
 
 	it('upload success', function () {

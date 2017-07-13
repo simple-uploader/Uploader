@@ -196,7 +196,7 @@ gulp.task('sauce', function (done) {
 		customLaunchers: customLaunchers,
 		reporters: ['progress', 'saucelabs']
 	})
-	karma.start(sauceConfig, done)
+	new Server(sauceConfig, done).start()
 })
 
 gulp.task('test', ['unit', 'cover'])

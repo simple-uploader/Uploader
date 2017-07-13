@@ -26,6 +26,7 @@
   "scripts": {
     "dev": "gulp watch",
     "build": "gulp build",
+    "test:def": "gulp",
     "test": "gulp ci"
   },
   "devDependencies": {
