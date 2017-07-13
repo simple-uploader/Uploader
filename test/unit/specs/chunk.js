@@ -30,7 +30,7 @@ describe('chunk', function () {
 			type: 'image/png',
 			size: 10
 		}
-		var ufile = new Uploader.Ufile(uploader, file, uploader)
+		var ufile = new Uploader.File(uploader, file, uploader)
 		expect(requests.length).toBe(0)
 
 		expect(ufile.chunks.length).toBe(1)
@@ -38,7 +38,7 @@ describe('chunk', function () {
 		expect(uchunk.offset).toBe(0)
 		expect(uchunk.chunkSize).toBe(1024 * 1024)
 		expect(uchunk.endByte).toBe(10)
-		expect(uchunk.status()).toBe(Uploader.Uchunk.STATUS.PENDING)
+		expect(uchunk.status()).toBe(Uploader.Chunk.STATUS.PENDING)
 		expect(uchunk.progress()).toBe(0)
 		expect(uchunk.sizeUploaded()).toBe(0)
 		expect(uchunk.message()).toBe('')
@@ -58,7 +58,7 @@ describe('chunk', function () {
 		var ufile = uploader.files[0]
 		expect(ufile.chunks.length).toBe(1)
 		var uchunk = ufile.chunks[0]
-		expect(uchunk.status()).toBe(Uploader.Uchunk.STATUS.UPLOADING)
+		expect(uchunk.status()).toBe(Uploader.Chunk.STATUS.UPLOADING)
 		expect(ufile.progress()).toBe(0)
 		expect(ufile.isComplete()).toBeFalsy()
 		expect(ufile.isUploading()).toBeTruthy()
@@ -67,7 +67,7 @@ describe('chunk', function () {
 		expect(ufile.isUploading()).toBeFalsy()
 		expect(uchunk.progress()).toBe(1)
 		expect(uchunk.sizeUploaded()).toBe(3)
-		expect(uchunk.status()).toBe(Uploader.Uchunk.STATUS.SUCCESS)
+		expect(uchunk.status()).toBe(Uploader.Chunk.STATUS.SUCCESS)
 	})
 
 	it('upload via multiple chunks', function () {
@@ -93,7 +93,7 @@ describe('chunk', function () {
 		var uchunk = uchunks[9]
 		expect(requests[9]).toBeDefined()
 
-		expect(uchunk.status()).toBe(Uploader.Uchunk.STATUS.UPLOADING)
+		expect(uchunk.status()).toBe(Uploader.Chunk.STATUS.UPLOADING)
 		expect(ufile.isComplete()).toBeFalsy()
 		expect(ufile.isUploading()).toBeTruthy()
 		expect(ufile.progress()).toBe(0.9)
@@ -106,7 +106,7 @@ describe('chunk', function () {
 		expect(ufile.progress()).toBe(1)
 		expect(uchunk.sizeUploaded()).toBe(1)
 		expect(ufile.sizeUploaded()).toBe(10)
-		expect(uchunk.status()).toBe(Uploader.Uchunk.STATUS.SUCCESS)
+		expect(uchunk.status()).toBe(Uploader.Chunk.STATUS.SUCCESS)
 	})
 
 	it('upload errors', function () {
