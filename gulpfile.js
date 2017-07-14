@@ -99,7 +99,7 @@ var karmaBaseConfig = {
 
 gulp.task('unit', function (done) {
 	var karmaUnitConfig = _.extend({}, karmaBaseConfig, {
-		browsers: ['Chrome', 'Firefox', 'Safari'],
+		browsers: ['Chrome', 'Firefox'],
 		reporters: ['progress']
 	})
 	new Server(karmaUnitConfig, done).start()
