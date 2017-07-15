@@ -1,4 +1,5 @@
-# Uploader
+# Uploader [![Build Status](https://travis-ci.org/dolymood/Uploader.svg)](https://travis-ci.org/dolymood/Uploader)
+
 A JavaScript library providing multiple simultaneous, stable, fault-tolerant and resumable/restartable file uploads via the HTML5 File API.
 
 Thanks:

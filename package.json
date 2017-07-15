@@ -27,10 +27,13 @@
     "dev": "gulp watch",
     "build": "gulp build",
     "test:unit": "gulp test",
+    "test:def": "gulp",
+    "codecov": "codecov",
     "test": "gulp ci"
   },
   "devDependencies": {
     "browserify-versionify": "^1.0.6",
+    "codecov": "^2.2.0",
     "eslint": "^4.2.0",
     "gulp": "^3.9.1",
     "gulp-browserify": "^0.5.1",
