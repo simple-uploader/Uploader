@@ -26,10 +26,10 @@
   "scripts": {
     "dev": "gulp watch",
     "build": "gulp build",
-    "test:unit": "gulp test",
-    "test:def": "gulp",
     "codecov": "codecov",
-    "test": "gulp ci"
+    "test": "gulp",
+    "test:unit": "gulp test",
+    "test:ci": "gulp ci"
   },
   "devDependencies": {
     "browserify-versionify": "^1.0.6",
