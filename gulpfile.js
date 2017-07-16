@@ -192,8 +192,8 @@ gulp.task('sauce', function (done) {
 			startConnect: false,
 			tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
 			build: process.env.TRAVIS_BUILD_NUMBER || process.env.SAUCE_BUILD_ID || Date.now()
-			// username: 'dolymood',
-			// accessKey: '297fafe2-fa71-4239-9726-5c46dd8a467b'
+			username: 'simple-uploader',
+			accessKey: '1d8128f9-bbfd-4e17-beef-c6403f35de74'
 		},
 		captureTimeout: 300000,
 		browserNoActivityTimeout: 300000,
