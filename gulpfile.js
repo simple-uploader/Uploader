@@ -99,15 +99,8 @@ var karmaBaseConfig = {
 
 gulp.task('unit', function (done) {
 	var karmaUnitConfig = _.extend({}, karmaBaseConfig, {
-		browsers: ['Chrome', 'Firefox', 'Safari'],
-		reporters: ['progress'],
-		plugins: [
-			require('karma-jasmine'),
-			require('karma-commonjs'),
-			require('karma-chrome-launcher'),
-			require('karma-firefox-launcher'),
-			require('karma-safari-launcher')
-		]
+		browsers: ['Chrome', 'Firefox'],
+		reporters: ['progress']
 	})
 	new Server(karmaUnitConfig, done).start()
 })
@@ -115,12 +108,6 @@ gulp.task('unit', function (done) {
 gulp.task('cover', function (done) {
 	var karmaCoverageConfig = _.extend({}, karmaBaseConfig, {
 		browsers: ['PhantomJS'],
-		plugins: [
-			require('karma-jasmine'),
-			require('karma-commonjs'),
-			require('karma-coverage'),
-			require('karma-phantomjs-launcher')
-		],
 		reporters: ['progress', 'coverage'],
 		preprocessors: {
 			'src/**/*.js': ['commonjs', 'coverage'],
@@ -199,11 +186,6 @@ gulp.task('sauce', function (done) {
 		}
 	}
 	var sauceConfig = _.extend({}, karmaBaseConfig, {
-		plugins: [
-			require('karma-jasmine'),
-			require('karma-commonjs'),
-			require('karma-sauce-launcher')
-		],
 		sauceLabs: {
 			testName: 'uploader unit tests',
 			recordScreenshots: false,
