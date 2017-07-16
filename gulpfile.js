@@ -99,8 +99,15 @@ var karmaBaseConfig = {
 
 gulp.task('unit', function (done) {
 	var karmaUnitConfig = _.extend({}, karmaBaseConfig, {
-		browsers: ['Chrome', 'Firefox'],
-		reporters: ['progress']
+		browsers: ['Chrome', 'Firefox', 'Safari'],
+		reporters: ['progress'],
+		plugins: [
+			require('karma-jasmine'),
+			require('karma-commonjs'),
+			require('karma-chrome-launcher'),
+			require('karma-firefox-launcher'),
+			require('karma-safari-launcher')
+		]
 	})
 	new Server(karmaUnitConfig, done).start()
 })
@@ -108,6 +115,11 @@ gulp.task('unit', function (done) {
 gulp.task('cover', function (done) {
 	var karmaCoverageConfig = _.extend({}, karmaBaseConfig, {
 		browsers: ['PhantomJS'],
+		plugins: [
+			require('karma-jasmine'),
+			require('karma-commonjs'),
+			require('karma-phantomjs-launcher')
+		]
 		reporters: ['progress', 'coverage'],
 		preprocessors: {
 			'src/**/*.js': ['commonjs', 'coverage'],
@@ -186,14 +198,19 @@ gulp.task('sauce', function (done) {
 		}
 	}
 	var sauceConfig = _.extend({}, karmaBaseConfig, {
+		plugins: [
+			require('karma-jasmine'),
+			require('karma-commonjs'),
+			require('karma-sauce-launcher')
+		],
 		sauceLabs: {
 			testName: 'uploader unit tests',
 			recordScreenshots: false,
 			startConnect: false,
 			tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
-			build: process.env.TRAVIS_BUILD_NUMBER || process.env.SAUCE_BUILD_ID || Date.now(),
-			username: 'dolymood',
-			accessKey: '297fafe2-fa71-4239-9726-5c46dd8a467b'
+			build: process.env.TRAVIS_BUILD_NUMBER || process.env.SAUCE_BUILD_ID || Date.now()
+			// username: 'dolymood',
+			// accessKey: '297fafe2-fa71-4239-9726-5c46dd8a467b'
 		},
 		captureTimeout: 300000,
 		browserNoActivityTimeout: 300000,
