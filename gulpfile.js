@@ -119,7 +119,7 @@ gulp.task('cover', function (done) {
 			require('karma-jasmine'),
 			require('karma-commonjs'),
 			require('karma-phantomjs-launcher')
-		]
+		],
 		reporters: ['progress', 'coverage'],
 		preprocessors: {
 			'src/**/*.js': ['commonjs', 'coverage'],
