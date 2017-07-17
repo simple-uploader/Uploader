@@ -114,21 +114,21 @@ describe('chunk', function () {
 		expect(uchunk.status()).toBe(Uploader.Chunk.STATUS.SUCCESS)
 	})
 
-	it('upload errors', function () {
-		uploader.opts.query = {}
-		uploader.opts.target = 'file'
-		uploader.opts.simultaneousUploads = 1
-		uploader.opts.chunkSize = 5
-		uploader.addFile(new File(['1111111111'], 'file.ddd'))
-		var ufile = uploader.files[0]
-		var uchunks = ufile.chunks
-		expect(uchunks.length).toBe(2)
-		uploader.upload()
-		var req = requests[0]
-		var req2 = requests[1]
-		var uchunk = uchunks[0]
-		var uchunk2 = uchunks[1]
-		// TODO...
-	})
+	// it('upload errors', function () {
+	// 	// uploader.opts.query = {}
+	// 	// uploader.opts.target = 'file'
+	// 	// uploader.opts.simultaneousUploads = 1
+	// 	// uploader.opts.chunkSize = 5
+	// 	// uploader.addFile(new File(['1111111111'], 'file.ddd'))
+	// 	// var ufile = uploader.files[0]
+	// 	// var uchunks = ufile.chunks
+	// 	// expect(uchunks.length).toBe(2)
+	// 	// uploader.upload()
+	// 	// var req = requests[0]
+	// 	// var req2 = requests[1]
+	// 	// var uchunk = uchunks[0]
+	// 	// var uchunk2 = uchunks[1]
+	// 	// TODO...
+	// })
 
 })
