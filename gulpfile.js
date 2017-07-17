@@ -239,9 +239,4 @@ gulp.task('npm-publish', ['git'], function (done) {
 
 gulp.task('release', ['npm-publish'])
 
-if (process.env.TRAVIS_PULL_REQUEST) {
-	// pull request
-	gulp.task('ci', ['cover', 'build'])
-} else {
-	gulp.task('ci', ['cover', 'build', 'sauce'])
-}
+gulp.task('ci', ['cover', 'build', 'sauce'])
