@@ -1,9 +1,7 @@
 language: node_js
 sudo: false
-dist: trusty
 addons:
   chrome: stable
-  sauce_connect: true
 cache:
   directories:
     - node_modules
@@ -17,6 +15,8 @@ matrix:
   include:
     - env: TESTNAME='unit-tests'
     - env: TESTNAME='browser-tests'
+      addons:
+        sauce_connect: true
   allow_failures:
     - env: TESTNAME='browser-tests'
 script: ./test.sh
