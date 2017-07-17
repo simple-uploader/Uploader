@@ -184,8 +184,7 @@ gulp.task('sauce', function (done) {
 			username: 'uploader',
 			accessKey: 'e2dd6126-05c4-422e-9cfb-4c4e9735e2ab'
 		},
-		captureTimeout: 300000,
-		browserNoActivityTimeout: 300000,
+		captureTimeout: 60000,
 		browsers: Object.keys(customLaunchers),
 		customLaunchers: customLaunchers,
 		reporters: ['progress', 'saucelabs']
