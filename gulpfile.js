@@ -180,7 +180,6 @@ gulp.task('sauce', function (done) {
 			testName: 'uploader unit tests',
 			recordScreenshots: false,
 			startConnect: false,
-			tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
 			build: process.env.TRAVIS_BUILD_NUMBER || process.env.SAUCE_BUILD_ID || Date.now(),
 			username: 'uploader',
 			accessKey: 'e2dd6126-05c4-422e-9cfb-4c4e9735e2ab'

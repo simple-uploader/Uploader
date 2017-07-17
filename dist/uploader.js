@@ -382,7 +382,7 @@ var supportDirectory = (function () {
 
 function Uploader (opts) {
 	this.support = support
-	if (!this.support || ie10plus) {
+	if (!this.support) {
 		return
 	}
 	this.supportDirectory = supportDirectory
