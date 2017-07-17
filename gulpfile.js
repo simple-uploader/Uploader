@@ -164,25 +164,15 @@ gulp.task('sauce', function (done) {
 			platform: 'Windows 10'
 		},
 
-		sl_ios_safari_8: {
+		sl_ios_safari_10: {
 			base: 'SauceLabs',
 			browserName: 'iphone',
-			version: '8.4'
+			version: '10.3'
 		},
-		sl_ios_safari_9: {
-			base: 'SauceLabs',
-			browserName: 'iphone',
-			version: '9.3'
-		},
-		sl_android_4_4: {
+		sl_android_6_0: {
 			base: 'SauceLabs',
 			browserName: 'android',
-			version: '4.4'
-		},
-		sl_android_5_1: {
-			base: 'SauceLabs',
-			browserName: 'android',
-			version: '5.1'
+			version: '6.0'
 		}
 	}
 	var sauceConfig = _.extend({}, karmaBaseConfig, {
@@ -192,8 +182,8 @@ gulp.task('sauce', function (done) {
 			startConnect: false,
 			tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
 			build: process.env.TRAVIS_BUILD_NUMBER || process.env.SAUCE_BUILD_ID || Date.now(),
-			username: 'mdxiaobudiandian',
-			accessKey: '1d8128f9-bbfd-4e17-beef-c6403f35de74'
+			username: 'uploader',
+			accessKey: 'e2dd6126-05c4-422e-9cfb-4c4e9735e2ab'
 		},
 		captureTimeout: 300000,
 		browserNoActivityTimeout: 300000,
