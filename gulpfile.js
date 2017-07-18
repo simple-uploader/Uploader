@@ -129,80 +129,67 @@ gulp.task('cover', function (done) {
 	new Server(karmaCoverageConfig, done).start()
 })
 
-var customLaunchers = {
-	sl_chrome: {
-		base: 'SauceLabs',
-		browserName: 'chrome',
-		platform: 'Windows 7'
-	},
-	sl_firefox: {
-		base: 'SauceLabs',
-		browserName: 'firefox',
-		platform: 'Windows 7'
-	},
-	sl_mac_safari: {
-		base: 'SauceLabs',
-		browserName: 'safari',
-		platform: 'OS X 10.10'
-	},
-
-	sl_ie_10: {
-		base: 'SauceLabs',
-		browserName: 'internet explorer',
-		platform: 'Windows 8',
-		version: '10'
-	},
-	sl_ie_11: {
-		base: 'SauceLabs',
-		browserName: 'internet explorer',
-		platform: 'Windows 8.1',
-		version: '11'
-	},
-	sl_edge: {
-		base: 'SauceLabs',
-		browserName: 'MicrosoftEdge',
-		platform: 'Windows 10'
-	},
-
-	sl_ios_safari_10_3: {
-		base: 'SauceLabs',
-		browserName: 'iphone',
-		version: '10.3'
-	},
-	sl_android_6_0: {
-		base: 'SauceLabs',
-		browserName: 'android',
-		version: '6.0'
-	}
-}
-var sauceConfig = _.extend({}, karmaBaseConfig, {
-	// mobile。。。 slow
-	captureTimeout: 300000,
-	browserNoActivityTimeout: 300000,
-	browsers: Object.keys(customLaunchers),
-	customLaunchers: customLaunchers,
-	reporters: ['progress', 'saucelabs']
-})
-gulp.task('sauce_build', function (done) {
-	new Server(_.extend({}, sauceConfig, {
-		sauceLabs: {
-			testName: 'uploader unit tests',
-			recordScreenshots: false,
-			build: process.env.TRAVIS_BUILD_NUMBER || process.env.SAUCE_BUILD_ID || Date.now(),
-			username: 'mdxiaobudiandian',
-			accessKey: '1d8128f9-bbfd-4e17-beef-c6403f35de74'
-		}
-	}), done).start()
-})
 gulp.task('sauce', function (done) {
-	new Server(_.extend({}, sauceConfig, {
+	var customLaunchers = {
+		sl_chrome: {
+			base: 'SauceLabs',
+			browserName: 'chrome',
+			platform: 'Windows 7'
+		},
+		sl_firefox: {
+			base: 'SauceLabs',
+			browserName: 'firefox',
+			platform: 'Windows 7'
+		},
+		sl_mac_safari: {
+			base: 'SauceLabs',
+			browserName: 'safari',
+			platform: 'OS X 10.10'
+		},
+
+		sl_ie_10: {
+			base: 'SauceLabs',
+			browserName: 'internet explorer',
+			platform: 'Windows 8',
+			version: '10'
+		},
+		sl_ie_11: {
+			base: 'SauceLabs',
+			browserName: 'internet explorer',
+			platform: 'Windows 8.1',
+			version: '11'
+		},
+		sl_edge: {
+			base: 'SauceLabs',
+			browserName: 'MicrosoftEdge',
+			platform: 'Windows 10'
+		},
+
+		sl_ios_safari_10_3: {
+			base: 'SauceLabs',
+			browserName: 'iphone',
+			version: '10.3'
+		},
+		sl_android_6_0: {
+			base: 'SauceLabs',
+			browserName: 'android',
+			version: '6.0'
+		}
+	}
+	new Server(_.extend({}, karmaBaseConfig, {
 		sauceLabs: {
 			testName: 'uploader unit tests',
 			recordScreenshots: false,
 			build: process.env.TRAVIS_BUILD_NUMBER || process.env.SAUCE_BUILD_ID || Date.now(),
 			username: 'uploader',
 			accessKey: 'e2dd6126-05c4-422e-9cfb-4c4e9735e2ab'
-		}
+		},
+		// mobile。。。 slow
+		captureTimeout: 300000,
+		browserNoActivityTimeout: 300000,
+		browsers: Object.keys(customLaunchers),
+		customLaunchers: customLaunchers,
+		reporters: ['progress', 'saucelabs']
 	}), done).start()
 })
 
@@ -251,10 +238,6 @@ gulp.task('npm-publish', ['git'], function (done) {
 
 gulp.task('release', ['npm-publish'])
 
-console.log(typeof process.env.TRAVIS_PULL_REQUEST)
-if (process.env.TRAVIS_PULL_REQUEST === 'true') {
-	// PR sauce: test only
-	gulp.task('ci', ['eslint', 'cover', 'sauce'])
-} else {
-	gulp.task('ci', ['eslint', 'cover', 'sauce_build'])
-}
+// console.log(typeof process.env.TRAVIS_PULL_REQUEST)
+// string
+gulp.task('ci', ['eslint', 'cover', 'sauce'])
