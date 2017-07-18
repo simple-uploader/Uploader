@@ -187,7 +187,7 @@ gulp.task('sauce_build', function (done) {
 	new Server(_.extend({}, sauceConfig, {
 		sauceLabs: {
 			testName: 'uploader unit tests',
-			recordScreenshots: true,
+			recordScreenshots: false,
 			build: process.env.TRAVIS_BUILD_NUMBER || process.env.SAUCE_BUILD_ID || Date.now(),
 			username: 'mdxiaobudiandian',
 			accessKey: '1d8128f9-bbfd-4e17-beef-c6403f35de74'
@@ -198,7 +198,7 @@ gulp.task('sauce', function (done) {
 	new Server(_.extend({}, sauceConfig, {
 		sauceLabs: {
 			testName: 'uploader unit tests',
-			recordScreenshots: true,
+			recordScreenshots: false,
 			build: process.env.TRAVIS_BUILD_NUMBER || process.env.SAUCE_BUILD_ID || Date.now(),
 			username: 'uploader',
 			accessKey: 'e2dd6126-05c4-422e-9cfb-4c4e9735e2ab'
@@ -251,6 +251,7 @@ gulp.task('npm-publish', ['git'], function (done) {
 
 gulp.task('release', ['npm-publish'])
 
+console.log(process.env.TRAVIS_PULL_REQUEST)
 if (process.env.TRAVIS_PULL_REQUEST === 'true') {
 	// PR sauce: test only
 	gulp.task('ci', ['eslint', 'cover', 'sauce'])
