@@ -169,7 +169,6 @@ gulp.task('sauce', function (done) {
 		sauceLabs: {
 			testName: 'uploader unit tests',
 			recordScreenshots: true,
-			startConnect: false,
 			build: process.env.TRAVIS_BUILD_NUMBER || process.env.SAUCE_BUILD_ID || Date.now(),
 			// username: 'mdxiaobudiandian',
 			// accessKey: '1d8128f9-bbfd-4e17-beef-c6403f35de74'
