@@ -138,7 +138,8 @@ gulp.task('sauce', function (done) {
 		},
 		sl_firefox: {
 			base: 'SauceLabs',
-			browserName: 'firefox'
+			browserName: 'firefox',
+			platform: 'Windows 7'
 		},
 		sl_mac_safari: {
 			base: 'SauceLabs',
@@ -162,17 +163,6 @@ gulp.task('sauce', function (done) {
 			base: 'SauceLabs',
 			browserName: 'MicrosoftEdge',
 			platform: 'Windows 10'
-		},
-
-		sl_ios_safari_10: {
-			base: 'SauceLabs',
-			browserName: 'iphone',
-			version: '10.3'
-		},
-		sl_android_6_0: {
-			base: 'SauceLabs',
-			browserName: 'android',
-			version: '6.0'
 		}
 	}
 	var sauceConfig = _.extend({}, karmaBaseConfig, {
