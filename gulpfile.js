@@ -168,7 +168,7 @@ gulp.task('sauce', function (done) {
 	var sauceConfig = _.extend({}, karmaBaseConfig, {
 		sauceLabs: {
 			testName: 'uploader unit tests',
-			recordScreenshots: false,
+			recordScreenshots: true,
 			startConnect: false,
 			build: process.env.TRAVIS_BUILD_NUMBER || process.env.SAUCE_BUILD_ID || Date.now(),
 			// username: 'mdxiaobudiandian',
