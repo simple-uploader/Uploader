@@ -163,6 +163,17 @@ gulp.task('sauce', function (done) {
 			base: 'SauceLabs',
 			browserName: 'MicrosoftEdge',
 			platform: 'Windows 10'
+		},
+
+		sl_ios_safari_10_3: {
+			base: 'SauceLabs',
+			browserName: 'iphone',
+			version: '10.3'
+		},
+		sl_android_6_0: {
+			base: 'SauceLabs',
+			browserName: 'android',
+			version: '6.0'
 		}
 	}
 	var sauceConfig = _.extend({}, karmaBaseConfig, {
@@ -176,7 +187,7 @@ gulp.task('sauce', function (done) {
 			accessKey: 'e2dd6126-05c4-422e-9cfb-4c4e9735e2ab'
 		},
 		captureTimeout: 60000,
-		idleTimeout: 180,
+		browserNoActivityTimeout: 60000,
 		browsers: Object.keys(customLaunchers),
 		customLaunchers: customLaunchers,
 		reporters: ['progress', 'saucelabs']
