@@ -251,7 +251,7 @@ gulp.task('npm-publish', ['git'], function (done) {
 
 gulp.task('release', ['npm-publish'])
 
-if (process.env.TRAVIS_PULL_REQUEST) {
+if (process.env.TRAVIS_PULL_REQUEST === 'true') {
 	// PR sauce: test only
 	gulp.task('ci', ['eslint', 'cover', 'sauce'])
 } else {
