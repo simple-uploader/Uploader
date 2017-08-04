@@ -42,7 +42,7 @@ function Uploader (opts) {
 	}
 	this.supportDirectory = supportDirectory
 	this.filePaths = {}
-	this.opts = utils.extend(Uploader.defaults, opts || {})
+	this.opts = utils.extend({}, Uploader.defaults, opts || {})
 
 	File.call(this, this)
 }
@@ -111,7 +111,7 @@ utils.extend(Uploader.prototype, {
 	constructor: Uploader,
 
 	_trigger: function (name) {
-		var args = utils.toArray(arguments, 1)
+		var args = utils.toArray(arguments)
 		var preventDefault = !this.trigger.apply(this, arguments)
 		if (name !== 'catchAll') {
 			args.unshift('catchAll')
@@ -201,20 +201,17 @@ utils.extend(Uploader.prototype, {
 			// Uploading empty file IE10/IE11 hangs indefinitely
 			// Directories have size `0` and name `.`
 			// Ignore already added files if opts.allowDuplicateUploads is set to false
-			if ((!ie10plus || ie10plus && file.size > 0) &&
-					!(file.size % 4096 === 0 && (file.name === '.' || file.fileName === '.')) &&
-					(this.opts.allowDuplicateUploads || !this.getFromUniqueIdentifier(this.generateUniqueIdentifier(file)))
-			) {
-				var _file = new File(this, file, this)
-				if (this._trigger('fileAdded', _file, evt)) {
-					_files.push(_file)
+			if ((!ie10plus || ie10plus && file.size > 0) && !(file.size % 4096 === 0 && (file.name === '.' || file.fileName === '.'))) {
+				var uniqueIdentifier = this.generateUniqueIdentifier(file)
+				if (this.opts.allowDuplicateUploads || !this.getFromUniqueIdentifier(uniqueIdentifier)) {
+					var _file = new File(this, file, this)
+					_file.uniqueIdentifier = uniqueIdentifier
+					if (this._trigger('fileAdded', _file, evt)) {
+						_files.push(_file)
+					}
 				}
 			}
 		}, this)
-		if (!_files.length) {
-			// no new files
-			return
-		}
 		// get new fileList
 		var newFileList = this.fileList.slice(oldFileListLen)
 		if (this._trigger('filesAdded', _files, newFileList, evt)) {
@@ -224,17 +221,22 @@ utils.extend(Uploader.prototype, {
 				}
 				this.files.push(file)
 			}, this)
+			this._trigger('filesSubmitted', _files, newFileList, evt)
 		}
-		this._trigger('filesSubmitted', _files, newFileList, evt)
 	},
 
 	addFile: function (file, evt) {
 		this.addFiles([file], evt)
 	},
 
+	removeFile: function (file) {
+		File.prototype.removeFile.call(this, file)
+		this._trigger('fileRemoved', file)
+	},
+
 	generateUniqueIdentifier: function (file) {
 		var custom = this.opts.generateUniqueIdentifier
-		if (utils.isFunction(custom === 'function')) {
+		if (utils.isFunction(custom)) {
 			return custom(file)
 		}
 		// Some confusion in different versions of Firefox
@@ -337,9 +339,6 @@ utils.extend(Uploader.prototype, {
 		var simultaneousUploads = this.opts.simultaneousUploads
 		var uploadingStatus = Chunk.STATUS.UPLOADING
 		utils.each(this.files, function (file) {
-			if (file.isComplete()) {
-				return
-			}
 			utils.each(file.chunks, function (chunk) {
 				if (chunk.status() === uploadingStatus) {
 					num++

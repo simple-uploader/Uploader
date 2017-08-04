@@ -14,7 +14,7 @@ function Chunk (uploader, file, offset) {
 	this.total = 0
 	this.chunkSize = this.uploader.opts.chunkSize
 	this.startByte = this.offset * this.chunkSize
-	this.endByte = Math.min(this.file.size, (this.offset + 1) * this.chunkSize)
+	this.endByte = this.computeEndByte()
 	this.xhr = null
 }
 
@@ -35,6 +35,16 @@ utils.extend(Chunk.prototype, {
 		args = utils.toArray(arguments)
 		args.unshift(this)
 		this.file._chunkEvent.apply(this.file, args)
+	},
+
+	computeEndByte: function () {
+		var endByte = Math.min(this.file.size, (this.offset + 1) * this.chunkSize)
+		if (this.file.size - endByte < this.chunkSize && !this.uploader.opts.forceChunkSize) {
+			// The last chunk will be bigger than the chunk size,
+			// but less than 2 * this.chunkSize
+			endByte = this.file.size
+		}
+		return endByte
 	},
 
 	getParams: function () {
@@ -89,13 +99,7 @@ utils.extend(Chunk.prototype, {
 	preprocessFinished: function () {
 		// Compute the endByte after the preprocess function to allow an
 		// implementer of preprocess to set the fileObj size
-		this.endByte = Math.min(this.file.size, (this.offset + 1) * this.chunkSize)
-		if (this.file.size - this.endByte < this.chunkSize &&
-				!this.uploader.opts.forceChunkSize) {
-			// The last chunk will be bigger than the chunk size,
-			// but less than 2*this.chunkSize
-			this.endByte = this.file.size
-		}
+		this.endByte = this.computeEndByte()
 		this.preprocessState = 2
 		this.send()
 	},

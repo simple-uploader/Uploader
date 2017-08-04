@@ -76,7 +76,8 @@ var karmaBaseConfig = {
 	basePath: '',
 	frameworks: ['jasmine', 'commonjs'],
 	files: [
-		'node_modules/sinon/pkg/sinon-2.3.7.js',
+		'node_modules/sinon/pkg/sinon-1.7.3.js',
+		'test/unit/lib/fakeFile.js',
 		'test/unit/lib/FakeXMLHttpRequestUpload.js',
 		'src/**/*.js',
 		'test/unit/specs/**/*.js'

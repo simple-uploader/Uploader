@@ -26,7 +26,6 @@ function File (uploader, file, parent) {
 			this.name = file.fileName || file.name
 			this.size = file.size
 			this.relativePath = file.relativePath || file.webkitRelativePath || this.name
-			this.uniqueIdentifier = uploader.generateUniqueIdentifier(file)
 			this._parseFile()
 		}
 	}
@@ -238,7 +237,7 @@ utils.extend(File.prototype, {
 			this._eachAccess(function (f) {
 				f.bootstrap()
 			}, function () {
-				this.file.bootstrap()
+				this.bootstrap()
 			})
 		}
 		this.uploader.upload()
@@ -263,7 +262,7 @@ utils.extend(File.prototype, {
 	progress: function () {
 		var totalDone = 0
 		var totalSize = 0
-		var ret
+		var ret = 0
 		this._eachAccess(function (file, index) {
 			totalDone += file.progress() * file.size
 			totalSize += file.size
@@ -330,7 +329,7 @@ utils.extend(File.prototype, {
 	},
 
 	timeRemaining: function () {
-		var ret
+		var ret = 0
 		var sizeDelta = 0
 		var averageSpeed = 0
 		this._eachAccess(function (file, i) {

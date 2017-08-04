@@ -1,4 +1,3 @@
-/* clone from https://github.com/flowjs/flow.js/blob/master/test/FakeXMLHttpRequestUpload.js */
 /**
  * Extends sinon.FakeXMLHttpRequest with upload functionality.
  * Property `upload` to FakeXMLHttpRequest added. It works with the following events:

@@ -6,7 +6,7 @@ var isFunction = function (fn) {
 	return serialize.call(fn) === '[object Function]'
 }
 
-var isArray = Array.isArray || function (ary) {
+var isArray = Array.isArray || /* istanbul ignore next */ function (ary) {
 	return serialize.call(ary) === '[object Array]'
 }
 
