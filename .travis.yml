@@ -1,6 +1,5 @@
 language: node_js
 sudo: false
-dist: precise
 addons:
   chrome: stable
 cache:
