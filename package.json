@@ -1,10 +1,12 @@
 {
-  "name": "Uploader.js",
+  "name": "simple-uploader.js",
   "version": "0.0.1",
   "author": "dolymood <dolymood@gmail.com>",
   "license": "MIT",
   "description": "Uploader library implements html5 file upload and provides multiple simultaneous, stable, fault tolerant and resumable uploads",
   "keywords": [
+  	"simple-uploader",
+  	"simple-uploader.js",
     "uploader",
     "uploader.js",
     "resumable.js",
