@@ -22,7 +22,7 @@ function Chunk (uploader, file, offset) {
 	this.total = 0
 	this.chunkSize = this.uploader.opts.chunkSize
 	this.startByte = this.offset * this.chunkSize
-	this.endByte = Math.min(this.file.size, (this.offset + 1) * this.chunkSize)
+	this.endByte = this.computeEndByte()
 	this.xhr = null
 }
 
@@ -43,6 +43,16 @@ utils.extend(Chunk.prototype, {
 		args = utils.toArray(arguments)
 		args.unshift(this)
 		this.file._chunkEvent.apply(this.file, args)
+	},
+
+	computeEndByte: function () {
+		var endByte = Math.min(this.file.size, (this.offset + 1) * this.chunkSize)
+		if (this.file.size - endByte < this.chunkSize && !this.uploader.opts.forceChunkSize) {
+			// The last chunk will be bigger than the chunk size,
+			// but less than 2 * this.chunkSize
+			endByte = this.file.size
+		}
+		return endByte
 	},
 
 	getParams: function () {
@@ -97,13 +107,7 @@ utils.extend(Chunk.prototype, {
 	preprocessFinished: function () {
 		// Compute the endByte after the preprocess function to allow an
 		// implementer of preprocess to set the fileObj size
-		this.endByte = Math.min(this.file.size, (this.offset + 1) * this.chunkSize)
-		if (this.file.size - this.endByte < this.chunkSize &&
-				!this.uploader.opts.forceChunkSize) {
-			// The last chunk will be bigger than the chunk size,
-			// but less than 2*this.chunkSize
-			this.endByte = this.file.size
-		}
+		this.endByte = this.computeEndByte()
 		this.preprocessState = 2
 		this.send()
 	},
@@ -387,7 +391,7 @@ function Uploader (opts) {
 	}
 	this.supportDirectory = supportDirectory
 	this.filePaths = {}
-	this.opts = utils.extend(Uploader.defaults, opts || {})
+	this.opts = utils.extend({}, Uploader.defaults, opts || {})
 
 	File.call(this, this)
 }
@@ -456,7 +460,7 @@ utils.extend(Uploader.prototype, {
 	constructor: Uploader,
 
 	_trigger: function (name) {
-		var args = utils.toArray(arguments, 1)
+		var args = utils.toArray(arguments)
 		var preventDefault = !this.trigger.apply(this, arguments)
 		if (name !== 'catchAll') {
 			args.unshift('catchAll')
@@ -546,20 +550,17 @@ utils.extend(Uploader.prototype, {
 			// Uploading empty file IE10/IE11 hangs indefinitely
 			// Directories have size `0` and name `.`
 			// Ignore already added files if opts.allowDuplicateUploads is set to false
-			if ((!ie10plus || ie10plus && file.size > 0) &&
-					!(file.size % 4096 === 0 && (file.name === '.' || file.fileName === '.')) &&
-					(this.opts.allowDuplicateUploads || !this.getFromUniqueIdentifier(this.generateUniqueIdentifier(file)))
-			) {
-				var _file = new File(this, file, this)
-				if (this._trigger('fileAdded', _file, evt)) {
-					_files.push(_file)
+			if ((!ie10plus || ie10plus && file.size > 0) && !(file.size % 4096 === 0 && (file.name === '.' || file.fileName === '.'))) {
+				var uniqueIdentifier = this.generateUniqueIdentifier(file)
+				if (this.opts.allowDuplicateUploads || !this.getFromUniqueIdentifier(uniqueIdentifier)) {
+					var _file = new File(this, file, this)
+					_file.uniqueIdentifier = uniqueIdentifier
+					if (this._trigger('fileAdded', _file, evt)) {
+						_files.push(_file)
+					}
 				}
 			}
 		}, this)
-		if (!_files.length) {
-			// no new files
-			return
-		}
 		// get new fileList
 		var newFileList = this.fileList.slice(oldFileListLen)
 		if (this._trigger('filesAdded', _files, newFileList, evt)) {
@@ -569,17 +570,22 @@ utils.extend(Uploader.prototype, {
 				}
 				this.files.push(file)
 			}, this)
+			this._trigger('filesSubmitted', _files, newFileList, evt)
 		}
-		this._trigger('filesSubmitted', _files, newFileList, evt)
 	},
 
 	addFile: function (file, evt) {
 		this.addFiles([file], evt)
 	},
 
+	removeFile: function (file) {
+		File.prototype.removeFile.call(this, file)
+		this._trigger('fileRemoved', file)
+	},
+
 	generateUniqueIdentifier: function (file) {
 		var custom = this.opts.generateUniqueIdentifier
-		if (utils.isFunction(custom === 'function')) {
+		if (utils.isFunction(custom)) {
 			return custom(file)
 		}
 		// Some confusion in different versions of Firefox
@@ -682,9 +688,6 @@ utils.extend(Uploader.prototype, {
 		var simultaneousUploads = this.opts.simultaneousUploads
 		var uploadingStatus = Chunk.STATUS.UPLOADING
 		utils.each(this.files, function (file) {
-			if (file.isComplete()) {
-				return
-			}
 			utils.each(file.chunks, function (chunk) {
 				if (chunk.status() === uploadingStatus) {
 					num++
@@ -826,7 +829,6 @@ function File (uploader, file, parent) {
 			this.name = file.fileName || file.name
 			this.size = file.size
 			this.relativePath = file.relativePath || file.webkitRelativePath || this.name
-			this.uniqueIdentifier = uploader.generateUniqueIdentifier(file)
 			this._parseFile()
 		}
 	}
@@ -1038,7 +1040,7 @@ utils.extend(File.prototype, {
 			this._eachAccess(function (f) {
 				f.bootstrap()
 			}, function () {
-				this.file.bootstrap()
+				this.bootstrap()
 			})
 		}
 		this.uploader.upload()
@@ -1063,7 +1065,7 @@ utils.extend(File.prototype, {
 	progress: function () {
 		var totalDone = 0
 		var totalSize = 0
-		var ret
+		var ret = 0
 		this._eachAccess(function (file, index) {
 			totalDone += file.progress() * file.size
 			totalSize += file.size
@@ -1130,7 +1132,7 @@ utils.extend(File.prototype, {
 	},
 
 	timeRemaining: function () {
-		var ret
+		var ret = 0
 		var sizeDelta = 0
 		var averageSpeed = 0
 		this._eachAccess(function (file, i) {
@@ -1243,7 +1245,7 @@ var isFunction = function (fn) {
 	return serialize.call(fn) === '[object Function]'
 }
 
-var isArray = Array.isArray || function (ary) {
+var isArray = Array.isArray || /* istanbul ignore next */ function (ary) {
 	return serialize.call(ary) === '[object Array]'
 }
 
