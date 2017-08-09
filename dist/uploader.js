@@ -1,6 +1,6 @@
 /*!
  * Uploader - Uploader library implements html5 file upload and provides multiple simultaneous, stable, fault tolerant and resumable uploads
- * @version v0.0.1
+ * @version v0.0.2
  * @author dolymood <dolymood@gmail.com>
  * @link https://github.com/simple-uploader/Uploader
  * @license MIT
@@ -352,7 +352,7 @@ var event = _dereq_('./event')
 var File = _dereq_('./file')
 var Chunk = _dereq_('./chunk')
 
-var version = '0.0.1'
+var version = '0.0.2'
 
 // ie10+
 var ie10plus = window.navigator.msPointerEnabled
@@ -818,6 +818,7 @@ function File (uploader, file, parent) {
 		if (utils.isString(file)) {
 			// folder
 			this.isFolder = true
+			this.file = null
 			this.path = file
 			if (this.parent.path) {
 				file = file.substr(this.parent.path.length)
@@ -833,9 +834,9 @@ function File (uploader, file, parent) {
 		}
 	}
 
-	this.started = false
 	this.paused = false
-	this.error = false
+	this.errored = false
+	this.aborted = false
 	this.averageSpeed = 0
 	this.currentSpeed = 0
 	this._lastProgressCallback = Date.now()
@@ -859,8 +860,8 @@ utils.extend(File.prototype, {
 					this._updateParentFileList(folderFile)
 				}
 				this.parent = folderFile
+				folderFile.files.push(this)
 				if (!ppaths[i + 1]) {
-					folderFile.files.push(this)
 					folderFile.fileList.push(this)
 				}
 			}, this)
@@ -876,10 +877,10 @@ utils.extend(File.prototype, {
 		var p = this.parent
 		if (p) {
 			p.fileList.push(file)
-			while (p && !p.isRoot) {
-				p.files.push(this)
-				p = p.parent
-			}
+			// while (p && !p.isRoot) {
+			// 	p.files.push(this)
+			// 	p = p.parent
+			// }
 		}
 	},
 
@@ -904,7 +905,7 @@ utils.extend(File.prototype, {
 		}
 
 		this.abort(true)
-		this.error = false
+		this.errored = false
 		// Rebuild stack of chunks from file
 		this._prevProgress = 0
 		var round = opts.forceChunkSize ? Math.ceil : Math.floor
@@ -915,16 +916,39 @@ utils.extend(File.prototype, {
 	},
 
 	_measureSpeed: function () {
-		var timeSpan = Date.now() - this._lastProgressCallback
-		if (!timeSpan) {
-			return
+		var averageSpeeds = 0
+		var currentSpeeds = 0
+		var num = 0
+		this._eachAccess(function (file) {
+			if (!file.paused && !file.errored) {
+				num += 1
+				averageSpeeds += file.averageSpeed || 0
+				currentSpeeds += file.currentSpeed || 0
+			}
+		}, function () {
+			var timeSpan = Date.now() - this._lastProgressCallback
+			if (!timeSpan) {
+				return
+			}
+			var smoothingFactor = this.uploader.opts.speedSmoothingFactor
+			var uploaded = this.sizeUploaded()
+			// Prevent negative upload speed after file upload resume
+			this.currentSpeed = Math.max((uploaded - this._prevUploadedSize) / timeSpan * 1000, 0)
+			this.averageSpeed = smoothingFactor * this.currentSpeed + (1 - smoothingFactor) * this.averageSpeed
+			this._prevUploadedSize = uploaded
+		})
+		if (this.isFolder) {
+			if (num) {
+				this.currentSpeed = currentSpeeds / num
+				this.averageSpeed = averageSpeeds / num
+			} else {
+				this.currentSpeed = 0
+				this.averageSpeed = 0
+			}
 		}
-		var smoothingFactor = this.uploader.opts.speedSmoothingFactor
-		var uploaded = this.sizeUploaded()
-		// Prevent negative upload speed after file upload resume
-		this.currentSpeed = Math.max((uploaded - this._prevUploadedSize) / timeSpan * 1000, 0)
-		this.averageSpeed = smoothingFactor * this.currentSpeed + (1 - smoothingFactor) * this.averageSpeed
-		this._prevUploadedSize = uploaded
+		if (this.parent) {
+			this.parent._measureSpeed()
+		}
 	},
 
 	_chunkEvent: function (chunk, evt, message) {
@@ -941,13 +965,13 @@ utils.extend(File.prototype, {
 				this._lastProgressCallback = Date.now()
 				break
 			case STATUS.ERROR:
-				this.error = true
+				this.errored = true
 				this.abort(true)
 				uploader._trigger('fileError', this, message, chunk)
 				uploader._trigger('error', message, this, chunk)
 				break
 			case STATUS.SUCCESS:
-				if (this.error) {
+				if (this.errored) {
 					return
 				}
 				this._measureSpeed()
@@ -1010,8 +1034,19 @@ utils.extend(File.prototype, {
 			f.resume()
 		}, function () {
 			this.paused = false
+			this.aborted = false
 			this.uploader.upload()
 		})
+		this.paused = false
+		this.aborted = false
+	},
+
+	error: function (errored) {
+		this.errored = errored
+
+		if (this.parent) {
+			this.parent.error(errored)
+		}
 	},
 
 	pause: function () {
@@ -1021,6 +1056,7 @@ utils.extend(File.prototype, {
 			this.paused = true
 			this.abort()
 		})
+		this.paused = true
 	},
 
 	cancel: function () {
@@ -1047,8 +1083,12 @@ utils.extend(File.prototype, {
 	},
 
 	abort: function (reset) {
+		if (this.aborted) {
+			return
+		}
 		this.currentSpeed = 0
 		this.averageSpeed = 0
+		this.aborted = !reset
 		var chunks = this.chunks
 		if (reset) {
 			this.chunks = []
@@ -1073,7 +1113,7 @@ utils.extend(File.prototype, {
 				ret = totalSize > 0 ? totalDone / totalSize : this.isComplete() ? 1 : 0
 			}
 		}, function () {
-			if (this.error) {
+			if (this.errored) {
 				ret = 1
 				return
 			}
@@ -1108,15 +1148,22 @@ utils.extend(File.prototype, {
 
 	getFormatSize: function () {
 		var size = this.getSize()
-		if (size < 1024) {
-			return size + ' bytes'
-		} else if (size < 1024 * 1024) {
-			return (size / 1024.0).toFixed(0) + ' KB'
-		} else if (size < 1024 * 1024 * 1024) {
-			return (size / 1024.0 / 1024.0).toFixed(1) + ' MB'
-		} else {
-			return (size / 1024.0 / 1024.0 / 1024.0).toFixed(1) + ' GB'
+		return utils.formatSize(size)
+	},
+
+	getRoot: function () {
+		if (this.isRoot) {
+			return this
 		}
+		var parent = this.parent
+		while (parent) {
+			if (parent.parent === this.uploader) {
+				// find it
+				return parent
+			}
+			parent = parent.parent
+		}
+		return this
 	},
 
 	sizeUploaded: function () {
@@ -1136,7 +1183,7 @@ utils.extend(File.prototype, {
 		var sizeDelta = 0
 		var averageSpeed = 0
 		this._eachAccess(function (file, i) {
-			if (!file.paused && !file.error) {
+			if (!file.paused && !file.errored) {
 				sizeDelta += file.size - file.sizeUploaded()
 				averageSpeed += file.averageSpeed
 			}
@@ -1144,7 +1191,7 @@ utils.extend(File.prototype, {
 				ret = calRet(sizeDelta, averageSpeed)
 			}
 		}, function () {
-			if (this.paused || this.error) {
+			if (this.paused || this.errored) {
 				ret = 0
 				return
 			}
@@ -1165,23 +1212,20 @@ utils.extend(File.prototype, {
 
 	removeFile: function (file) {
 		if (file.isFolder) {
-			if (file.parent) {
-				file.parent._removeFile(file)
+			while (file.files.length) {
+				this._removeFile(file.files[file.files.length - 1])
 			}
-			utils.each(file.files, function (f) {
-				this.removeFile(f)
-			}, this)
-			return
 		}
-		utils.each(this.files, function (f, i) {
-			if (f === file) {
-				this.files.splice(i, 1)
-				file.abort()
-				if (file.parent) {
-					file.parent._removeFile(file)
-				}
-				return false
-			}
+		this._removeFile(file)
+		this._delFilePath(file)
+	},
+
+	_delFilePath: function (file) {
+		if (file.path && this.filePaths) {
+			delete this.filePaths[file.path]
+		}
+		utils.each(file.fileList, function (file) {
+			this._delFilePath(file)
 		}, this)
 	},
 
@@ -1189,8 +1233,11 @@ utils.extend(File.prototype, {
 		!file.isFolder && utils.each(this.files, function (f, i) {
 			if (f === file) {
 				this.files.splice(i, 1)
-				if (this.parent) {
-					this.parent._removeFile(file)
+				file.abort()
+				var parent = file.parent
+				while (parent && parent !== this) {
+					parent._removeFile(file)
+					parent = parent.parent
 				}
 				return false
 			}
@@ -1201,13 +1248,14 @@ utils.extend(File.prototype, {
 				return false
 			}
 		}, this)
+		file.parent = null
 	},
 
 	getType: function () {
 		if (this.isFolder) {
-			return 'Folder'
+			return 'folder'
 		}
-		return this.file.type && this.file.type.split('/')[1]
+		return this.fileType && this.fileType.split('/')[1]
 	},
 
 	getExtension: function () {
@@ -1380,6 +1428,18 @@ var utils = {
 			}
 		}
 		return target
+	},
+
+	formatSize: function (size) {
+		if (size < 1024) {
+			return size + ' bytes'
+		} else if (size < 1024 * 1024) {
+			return (size / 1024.0).toFixed(0) + ' KB'
+		} else if (size < 1024 * 1024 * 1024) {
+			return (size / 1024.0 / 1024.0).toFixed(1) + ' MB'
+		} else {
+			return (size / 1024.0 / 1024.0 / 1024.0).toFixed(1) + ' GB'
+		}
 	}
 }
 
