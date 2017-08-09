@@ -227,6 +227,7 @@ If `.isFolder` is `false` then these properties will be added:
 
 #### Methods
 
+* `.getRoot()` Returns the file's root Uploader.File instance in `uploader.fileList`.
 * `.progress(relative)` Returns a float between 0 and 1 indicating the current upload progress of the file. If `relative` is `true`, the value is returned relative to all files in the Upoader.js instance.
 * `.pause()` Pause uploading the file.
 * `.resume()` Resume uploading the file.
