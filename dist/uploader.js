@@ -1255,7 +1255,7 @@ utils.extend(File.prototype, {
 		if (this.isFolder) {
 			return 'folder'
 		}
-		return this.fileType && this.fileType.split('/')[1]
+		return this.file.type && this.file.type.split('/')[1]
 	},
 
 	getExtension: function () {
