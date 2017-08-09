@@ -224,7 +224,6 @@ describe('upload file', function () {
 		expect(success).not.toHaveBeenCalled()
 		expect(retry).not.toHaveBeenCalled()
 
-		console.log('######')
 		requests[0].respond(400)
 		expect(requests.length).toBe(2)
 		expect(firstChunk.status()).toBe('uploading')
