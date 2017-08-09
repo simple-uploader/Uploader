@@ -32,7 +32,8 @@
     "test": "gulp",
     "test:unit": "gulp test",
     "test:cover": "gulp cover",
-    "test:ci": "gulp ci"
+    "test:ci": "gulp ci",
+    "release": "gulp release"
   },
   "devDependencies": {
     "browserify-versionify": "^1.0.6",
