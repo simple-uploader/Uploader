@@ -161,6 +161,18 @@ describe('utils', function () {
 			r++
 		})
 		expect(r).toBe(2)
+		a = {a: 1, b: 2}
+		r = 0
+		_.each(a, function (v) {
+			r++
+			return false
+		})
+		expect(r).toBe(1)
+		r = 0
+		_.each(a, function (v) {
+			r++
+		})
+		expect(r).toBe(2)
 	})
 
 	it('evalOpts', function () {
@@ -195,6 +207,21 @@ describe('utils', function () {
 		expect(to.b).not.toBe(from.b)
 		expect(to.b.c).toBe(from.b.c)
 		expect(res).toBe(to)
+
+		// some check cases
+		_.extend('str', from)
+		_.extend('', from)
+		_.extend(true)
+		_.extend({
+			x: 'x'
+		})
+		expect(_.x).toBe('x')
 	})
 
+	it('formatSize', function () {
+		expect(_.formatSize(0)).toBe('0 bytes')
+		expect(_.formatSize(2.2 * 1024)).toBe('2 KB')
+		expect(_.formatSize(2.15 * 1024 * 1024)).toBe('2.1 MB')
+		expect(_.formatSize(5.14 * 1024 * 1024 * 1024)).toBe('5.1 GB')
+	})
 })

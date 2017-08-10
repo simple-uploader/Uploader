@@ -37,6 +37,7 @@ var supportDirectory = (function () {
 
 function Uploader (opts) {
 	this.support = support
+	/* istanbul ignore if */
 	if (!this.support) {
 		return
 	}
@@ -56,11 +57,12 @@ function Uploader (opts) {
 var webAPIFileRead = function (fileObj, fileType, startByte, endByte, chunk) {
 	var function_name = 'slice'
 
+	/* istanbul ignore if */
 	if (fileObj.file.slice) {
 		function_name = 'slice'
-	} else if (fileObj.file.mozSlice) {
+	} /* istanbul ignore next */ else if (fileObj.file.mozSlice) {
 		function_name = 'mozSlice'
-	} else if (fileObj.file.webkitSlice) {
+	} /* istanbul ignore next */ else if (fileObj.file.webkitSlice) {
 		function_name = 'webkitSlice'
 	}
 	chunk.readFinished(fileObj.file[function_name](startByte, endByte, fileType))
@@ -172,8 +174,10 @@ utils.extend(Uploader.prototype, {
 		if (utils.isFunction(custom)) {
 			return custom(file)
 		}
+		/* istanbul ignore next */
 		// Some confusion in different versions of Firefox
 		var relativePath = file.relativePath || file.webkitRelativePath || file.fileName || file.name
+		/* istanbul ignore next */
 		return file.size + '-' + relativePath.replace(/[^0-9a-zA-Z_-]/img, '')
 	},
 

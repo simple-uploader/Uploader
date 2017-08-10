@@ -84,9 +84,6 @@ utils.extend(File.prototype, {
 			}, this)
 			return
 		}
-		if (!fileFn) {
-			fileFn = eachFn
-		}
 		fileFn.call(this, this)
 	},
 
@@ -411,7 +408,8 @@ utils.extend(File.prototype, {
 	removeFile: function (file) {
 		if (file.isFolder) {
 			while (file.files.length) {
-				this._removeFile(file.files[file.files.length - 1])
+				var f = file.files[file.files.length - 1]
+				this._removeFile(f)
 			}
 		}
 		this._removeFile(file)
