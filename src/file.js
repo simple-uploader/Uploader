@@ -32,7 +32,7 @@ function File (uploader, file, parent) {
 	}
 
 	this.paused = false
-	this.errored = false
+	this.error = false
 	this.aborted = false
 	this.averageSpeed = 0
 	this.currentSpeed = 0
@@ -74,10 +74,6 @@ utils.extend(File.prototype, {
 		var p = this.parent
 		if (p) {
 			p.fileList.push(file)
-			// while (p && !p.isRoot) {
-			// 	p.files.push(this)
-			// 	p = p.parent
-			// }
 		}
 	},
 
@@ -102,7 +98,7 @@ utils.extend(File.prototype, {
 		}
 
 		this.abort(true)
-		this.errored = false
+		this.error = false
 		// Rebuild stack of chunks from file
 		this._prevProgress = 0
 		var round = opts.forceChunkSize ? Math.ceil : Math.floor
@@ -117,7 +113,7 @@ utils.extend(File.prototype, {
 		var currentSpeeds = 0
 		var num = 0
 		this._eachAccess(function (file) {
-			if (!file.paused && !file.errored) {
+			if (!file.paused && !file.error) {
 				num += 1
 				averageSpeeds += file.averageSpeed || 0
 				currentSpeeds += file.currentSpeed || 0
@@ -162,13 +158,13 @@ utils.extend(File.prototype, {
 				this._lastProgressCallback = Date.now()
 				break
 			case STATUS.ERROR:
-				this.errored = true
+				this.error = true
 				this.abort(true)
 				uploader._trigger('fileError', this, message, chunk)
 				uploader._trigger('error', message, this, chunk)
 				break
 			case STATUS.SUCCESS:
-				if (this.errored) {
+				if (this.error) {
 					return
 				}
 				this._measureSpeed()
@@ -207,6 +203,19 @@ utils.extend(File.prototype, {
 		return !outstanding
 	},
 
+	isError: function () {
+		var error = false
+		this._eachAccess(function (file) {
+			if (file.error) {
+				error = true
+				return false
+			}
+		}, function () {
+			error = this.error
+		})
+		return error
+	},
+
 	isUploading: function () {
 		var uploading = false
 		this._eachAccess(function (file) {
@@ -236,14 +245,6 @@ utils.extend(File.prototype, {
 		})
 		this.paused = false
 		this.aborted = false
-	},
-
-	error: function (errored) {
-		this.errored = errored
-
-		if (this.parent) {
-			this.parent.error(errored)
-		}
 	},
 
 	pause: function () {
@@ -310,7 +311,7 @@ utils.extend(File.prototype, {
 				ret = totalSize > 0 ? totalDone / totalSize : this.isComplete() ? 1 : 0
 			}
 		}, function () {
-			if (this.errored) {
+			if (this.error) {
 				ret = 1
 				return
 			}
@@ -380,7 +381,7 @@ utils.extend(File.prototype, {
 		var sizeDelta = 0
 		var averageSpeed = 0
 		this._eachAccess(function (file, i) {
-			if (!file.paused && !file.errored) {
+			if (!file.paused && !file.error) {
 				sizeDelta += file.size - file.sizeUploaded()
 				averageSpeed += file.averageSpeed
 			}
@@ -388,7 +389,7 @@ utils.extend(File.prototype, {
 				ret = calRet(sizeDelta, averageSpeed)
 			}
 		}, function () {
-			if (this.paused || this.errored) {
+			if (this.paused || this.error) {
 				ret = 0
 				return
 			}

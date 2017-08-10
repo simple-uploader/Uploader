@@ -222,7 +222,7 @@ retried.
 * `.averageSpeed` Average upload speed, bytes per second.
 * `.currentSpeed` Current upload speed, bytes per second.
 * `.paused` Indicated if file(folder) is paused.
-* `.errored` Indicated if file(folder) has encountered an error.
+* `.error` Indicated if file(folder) has encountered an error.
 * `.isFolder` Indicated if file(folder) is an `Directory`.
 
 If `.isFolder` is `false` then these properties will be added:
@@ -244,6 +244,7 @@ If `.isFolder` is `false` then these properties will be added:
 * `.bootstrap()` Rebuild the state of a `Uploader.File` object, including reassigning chunks and XMLHttpRequest instances.
 * `.isUploading()` Returns a boolean indicating whether file chunks is uploading.
 * `.isComplete()` Returns a boolean indicating whether the file has completed uploading and received a server response.
+* `.isError` Returns a boolean indicating whether the file has an error.
 * `.sizeUploaded()` Returns size uploaded in bytes.
 * `.timeRemaining()` Returns remaining time to finish upload file in seconds. Accuracy is based on average speed. If speed is zero, time remaining will be equal to positive infinity `Number.POSITIVE_INFINITY`
 * `.getExtension()` Returns file extension in lowercase.
