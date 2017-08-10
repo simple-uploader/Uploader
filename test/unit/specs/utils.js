@@ -221,7 +221,7 @@ describe('utils', function () {
 	it('formatSize', function () {
 		expect(_.formatSize(0)).toBe('0 bytes')
 		expect(_.formatSize(2.2 * 1024)).toBe('2 KB')
-		expect(_.formatSize(2.15 * 1024 * 1024)).toBe('2.1 MB')
+		expect(_.formatSize(2.14 * 1024 * 1024)).toBe('2.1 MB')
 		expect(_.formatSize(5.14 * 1024 * 1024 * 1024)).toBe('5.1 GB')
 	})
 })
