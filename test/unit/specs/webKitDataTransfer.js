@@ -33,7 +33,7 @@ describe('webKitDataTransfer', function () {
 			}
 		}
 		spyOn(uploader, 'addFiles')
-		uploader.webkitReadDataTransfer(event)
+		uploader.webkitReadDataTransfer(event.dataTransfer, event)
 		expect(uploader.addFiles).toHaveBeenCalledWith([], event)
 	})
 
@@ -55,7 +55,7 @@ describe('webKitDataTransfer', function () {
 			}
 		}
 		spyOn(uploader, 'addFiles')
-		uploader.webkitReadDataTransfer(event)
+		uploader.webkitReadDataTransfer(event.dataTransfer, event)
 		expect(uploader.addFiles).toHaveBeenCalledWith(
 			[{relativePath: 'home/user/foo/111.txt'}],
 			event
@@ -94,7 +94,7 @@ describe('webKitDataTransfer', function () {
 			}
 		}
 		spyOn(uploader, 'addFiles')
-		uploader.webkitReadDataTransfer(event)
+		uploader.webkitReadDataTransfer(event.dataTransfer, event)
 		expect(uploader.addFiles).toHaveBeenCalledWith(
 			[{relativePath: 'home/user/foo/111.txt'}],
 			event
@@ -134,7 +134,7 @@ describe('webKitDataTransfer', function () {
 			}
 		}
 		spyOn(uploader, 'addFiles')
-		uploader.webkitReadDataTransfer(event)
+		uploader.webkitReadDataTransfer(event.dataTransfer, event)
 		expect(uploader.addFiles).toHaveBeenCalledWith(
 			[
 				{relativePath: 'home/user/foo/111.txt'},
