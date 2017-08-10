@@ -476,73 +476,6 @@ utils.extend(Uploader.prototype, {
 		}, this)
 	},
 
-	onDrop: function (evt) {
-		if (this.opts.onDropStopPropagation) {
-			evt.stopPropagation()
-		}
-		evt.preventDefault()
-		var dataTransfer = evt.dataTransfer
-		if (dataTransfer.items && dataTransfer.items[0] &&
-			dataTransfer.items[0].webkitGetAsEntry) {
-			this.webkitReadDataTransfer(evt)
-		} else {
-			this.addFiles(dataTransfer.files, evt)
-		}
-	},
-
-	webkitReadDataTransfer: function (evt) {
-		var self = this
-		var queue = evt.dataTransfer.items.length
-		var files = []
-		utils.each(evt.dataTransfer.items, function (item) {
-			var entry = item.webkitGetAsEntry()
-			if (!entry) {
-				decrement()
-				return
-			}
-			if (entry.isFile) {
-				// due to a bug in Chrome's File System API impl - #149735
-				fileReadSuccess(item.getAsFile(), entry.fullPath)
-			} else {
-				readDirectory(entry.createReader())
-			}
-		})
-		function readDirectory (reader) {
-			reader.readEntries(function (entries) {
-				if (entries.length) {
-					queue += entries.length
-					utils.each(entries, function (entry) {
-						if (entry.isFile) {
-							var fullPath = entry.fullPath
-							entry.file(function (file) {
-								fileReadSuccess(file, fullPath)
-							}, readError)
-						} else if (entry.isDirectory) {
-							readDirectory(entry.createReader())
-						}
-					})
-					readDirectory(reader)
-				} else {
-					decrement()
-				}
-			}, readError)
-		}
-		function fileReadSuccess (file, fullPath) {
-			// relative path should not start with "/"
-			file.relativePath = fullPath.substring(1)
-			files.push(file)
-			decrement()
-		}
-		function readError (fileError) {
-			throw fileError
-		}
-		function decrement () {
-			if (--queue === 0) {
-				self.addFiles(files, evt)
-			}
-		}
-	},
-
 	addFiles: function (files, evt) {
 		var _files = []
 		var oldFileListLen = this.fileList.length
@@ -762,21 +695,100 @@ utils.extend(Uploader.prototype, {
 		}, this)
 	},
 
+	onDrop: function (evt) {
+		if (this.opts.onDropStopPropagation) {
+			evt.stopPropagation()
+		}
+		evt.preventDefault()
+		this._parseDataTransfer(evt.dataTransfer, evt)
+	},
+
+	_parseDataTransfer: function (dataTransfer, evt) {
+		if (dataTransfer.items && dataTransfer.items[0] &&
+			dataTransfer.items[0].webkitGetAsEntry) {
+			this.webkitReadDataTransfer(dataTransfer, evt)
+		} else {
+			this.addFiles(dataTransfer.files, evt)
+		}
+	},
+
+	webkitReadDataTransfer: function (dataTransfer, evt) {
+		var self = this
+		var queue = dataTransfer.items.length
+		var files = []
+		utils.each(dataTransfer.items, function (item) {
+			var entry = item.webkitGetAsEntry()
+			if (!entry) {
+				decrement()
+				return
+			}
+			if (entry.isFile) {
+				// due to a bug in Chrome's File System API impl - #149735
+				fileReadSuccess(item.getAsFile(), entry.fullPath)
+			} else {
+				readDirectory(entry.createReader())
+			}
+		})
+		function readDirectory (reader) {
+			reader.readEntries(function (entries) {
+				if (entries.length) {
+					queue += entries.length
+					utils.each(entries, function (entry) {
+						if (entry.isFile) {
+							var fullPath = entry.fullPath
+							entry.file(function (file) {
+								fileReadSuccess(file, fullPath)
+							}, readError)
+						} else if (entry.isDirectory) {
+							readDirectory(entry.createReader())
+						}
+					})
+					readDirectory(reader)
+				} else {
+					decrement()
+				}
+			}, readError)
+		}
+		function fileReadSuccess (file, fullPath) {
+			// relative path should not start with "/"
+			file.relativePath = fullPath.substring(1)
+			files.push(file)
+			decrement()
+		}
+		function readError (fileError) {
+			throw fileError
+		}
+		function decrement () {
+			if (--queue === 0) {
+				self.addFiles(files, evt)
+			}
+		}
+	},
+
+	_assignHelper: function (domNodes, handles, remove) {
+		if (typeof domNodes.length === 'undefined') {
+			domNodes = [domNodes]
+		}
+		var evtMethod = remove ? 'removeEventListener' : 'addEventListener'
+		utils.each(domNodes, function (domNode) {
+			utils.each(handles, function (handler, name) {
+				domNode[evtMethod](name, handler, false)
+			}, this)
+		}, this)
+	},
+
 	/**
 	 * Assign one or more DOM nodes as a drop target.
 	 * @function
 	 * @param {Element|Array.<Element>} domNodes
 	 */
 	assignDrop: function (domNodes) {
-		if (typeof domNodes.length === 'undefined') {
-			domNodes = [domNodes]
-		}
 		this._onDrop = utils.bind(this.onDrop, this)
-		utils.each(domNodes, function (domNode) {
-			domNode.addEventListener('dragover', utils.preventEvent, false)
-			domNode.addEventListener('dragenter', utils.preventEvent, false)
-			domNode.addEventListener('drop', this._onDrop, false)
-		}, this)
+		this._assignHelper(domNodes, {
+			dragover: utils.preventEvent,
+			dragenter: utils.preventEvent,
+			drop: this._onDrop
+		})
 	},
 
 	/**
@@ -785,17 +797,13 @@ utils.extend(Uploader.prototype, {
 	 * @param domNodes
 	 */
 	unAssignDrop: function (domNodes) {
-		if (typeof domNodes.length === 'undefined') {
-			domNodes = [domNodes]
-		}
-		utils.each(domNodes, function (domNode) {
-			domNode.removeEventListener('dragover', utils.preventEvent, false)
-			domNode.removeEventListener('dragenter', utils.preventEvent, false)
-			domNode.removeEventListener('drop', this._onDrop, false)
-			this._onDrop = null
-		}, this)
+		this._assignHelper(domNodes, {
+			dragover: utils.preventEvent,
+			dragenter: utils.preventEvent,
+			drop: this._onDrop
+		}, true)
+		this._onDrop = null
 	}
-
 })
 
 module.exports = Uploader
@@ -835,7 +843,7 @@ function File (uploader, file, parent) {
 	}
 
 	this.paused = false
-	this.errored = false
+	this.error = false
 	this.aborted = false
 	this.averageSpeed = 0
 	this.currentSpeed = 0
@@ -877,10 +885,6 @@ utils.extend(File.prototype, {
 		var p = this.parent
 		if (p) {
 			p.fileList.push(file)
-			// while (p && !p.isRoot) {
-			// 	p.files.push(this)
-			// 	p = p.parent
-			// }
 		}
 	},
 
@@ -905,7 +909,7 @@ utils.extend(File.prototype, {
 		}
 
 		this.abort(true)
-		this.errored = false
+		this.error = false
 		// Rebuild stack of chunks from file
 		this._prevProgress = 0
 		var round = opts.forceChunkSize ? Math.ceil : Math.floor
@@ -920,7 +924,7 @@ utils.extend(File.prototype, {
 		var currentSpeeds = 0
 		var num = 0
 		this._eachAccess(function (file) {
-			if (!file.paused && !file.errored) {
+			if (!file.paused && !file.error) {
 				num += 1
 				averageSpeeds += file.averageSpeed || 0
 				currentSpeeds += file.currentSpeed || 0
@@ -965,13 +969,13 @@ utils.extend(File.prototype, {
 				this._lastProgressCallback = Date.now()
 				break
 			case STATUS.ERROR:
-				this.errored = true
+				this.error = true
 				this.abort(true)
 				uploader._trigger('fileError', this, message, chunk)
 				uploader._trigger('error', message, this, chunk)
 				break
 			case STATUS.SUCCESS:
-				if (this.errored) {
+				if (this.error) {
 					return
 				}
 				this._measureSpeed()
@@ -1010,6 +1014,19 @@ utils.extend(File.prototype, {
 		return !outstanding
 	},
 
+	isError: function () {
+		var error = false
+		this._eachAccess(function (file) {
+			if (file.error) {
+				error = true
+				return false
+			}
+		}, function () {
+			error = this.error
+		})
+		return error
+	},
+
 	isUploading: function () {
 		var uploading = false
 		this._eachAccess(function (file) {
@@ -1039,14 +1056,6 @@ utils.extend(File.prototype, {
 		})
 		this.paused = false
 		this.aborted = false
-	},
-
-	error: function (errored) {
-		this.errored = errored
-
-		if (this.parent) {
-			this.parent.error(errored)
-		}
 	},
 
 	pause: function () {
@@ -1113,7 +1122,7 @@ utils.extend(File.prototype, {
 				ret = totalSize > 0 ? totalDone / totalSize : this.isComplete() ? 1 : 0
 			}
 		}, function () {
-			if (this.errored) {
+			if (this.error) {
 				ret = 1
 				return
 			}
@@ -1183,7 +1192,7 @@ utils.extend(File.prototype, {
 		var sizeDelta = 0
 		var averageSpeed = 0
 		this._eachAccess(function (file, i) {
-			if (!file.paused && !file.errored) {
+			if (!file.paused && !file.error) {
 				sizeDelta += file.size - file.sizeUploaded()
 				averageSpeed += file.averageSpeed
 			}
@@ -1191,7 +1200,7 @@ utils.extend(File.prototype, {
 				ret = calRet(sizeDelta, averageSpeed)
 			}
 		}, function () {
-			if (this.paused || this.errored) {
+			if (this.paused || this.error) {
 				ret = 0
 				return
 			}
