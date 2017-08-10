@@ -46,7 +46,7 @@ describe('Uploader.File functions - file', function () {
 	})
 
 	it('getRoot', function () {
-		var root = file.getRoot()
-		expect(root).toBe(file)
+		var rootFile = file.getRoot()
+		expect(rootFile).toBe(file)
 	})
 })
