@@ -55,17 +55,7 @@ function Uploader (opts) {
  *
  */
 var webAPIFileRead = function (fileObj, fileType, startByte, endByte, chunk) {
-  var function_name = 'slice'
-
-  /* istanbul ignore if */
-  if (fileObj.file.slice) {
-    function_name = 'slice'
-  } /* istanbul ignore next */ else if (fileObj.file.mozSlice) {
-    function_name = 'mozSlice'
-  } /* istanbul ignore next */ else if (fileObj.file.webkitSlice) {
-    function_name = 'webkitSlice'
-  }
-  chunk.readFinished(fileObj.file[function_name](startByte, endByte, fileType))
+  chunk.readFinished(fileObj.file[Uploader.sliceName](startByte, endByte, fileType))
 }
 
 Uploader.version = version
