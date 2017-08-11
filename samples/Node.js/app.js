@@ -15,38 +15,38 @@ app.use(express.static(__dirname + '/../../dist'));
 
 // Handle uploads through Uploader.js
 app.post('/upload', multipartMiddleware, function(req, res) {
-	uploader.post(req, function(status, filename, original_filename, identifier) {
-		console.log('POST', status, original_filename, identifier);
-		if (ACCESS_CONTROLL_ALLOW_ORIGIN) {
-			res.header("Access-Control-Allow-Origin", "*");
-		}
-		res.send(status);
-	});
+  uploader.post(req, function(status, filename, original_filename, identifier) {
+    console.log('POST', status, original_filename, identifier);
+    if (ACCESS_CONTROLL_ALLOW_ORIGIN) {
+      res.header("Access-Control-Allow-Origin", "*");
+    }
+    res.send(status);
+  });
 });
 
 
 app.options('/upload', function(req, res){
-	console.log('OPTIONS');
-	if (ACCESS_CONTROLL_ALLOW_ORIGIN) {
-		res.header("Access-Control-Allow-Origin", "*");
-	}
-	res.status(200).send();
+  console.log('OPTIONS');
+  if (ACCESS_CONTROLL_ALLOW_ORIGIN) {
+    res.header("Access-Control-Allow-Origin", "*");
+  }
+  res.status(200).send();
 });
 
 // Handle status checks on chunks through Uploader.js
 app.get('/upload', function(req, res) {
-	uploader.get(req, function(status, filename, original_filename, identifier) {
-		console.log('GET', status);
-		if (ACCESS_CONTROLL_ALLOW_ORIGIN) {
-			res.header("Access-Control-Allow-Origin", "*");
-		}
+  uploader.get(req, function(status, filename, original_filename, identifier) {
+    console.log('GET', status);
+    if (ACCESS_CONTROLL_ALLOW_ORIGIN) {
+      res.header("Access-Control-Allow-Origin", "*");
+    }
 
-		res.status(status == 'found' ? 200 : 404).send(status);
-	});
+    res.status(status == 'found' ? 200 : 404).send(status);
+  });
 });
 
 app.get('/download/:identifier', function(req, res) {
-	uploader.write(req.params.identifier, res);
+  uploader.write(req.params.identifier, res);
 });
 
 app.listen(3000);
