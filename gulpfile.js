@@ -151,7 +151,7 @@ gulp.task('sauce', function (done) {
     sl_ie_10: {
       base: 'SauceLabs',
       browserName: 'internet explorer',
-      platform: 'Windows 8',
+      platform: 'Windows 7',
       version: '10'
     },
     sl_ie_11: {
