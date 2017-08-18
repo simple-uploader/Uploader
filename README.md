@@ -63,11 +63,14 @@ After this, interaction with Uploader.js is done by listening to events:
 uploader.on('fileAdded', function (file, event) {
   console.log(file, event)
 })
-uploader.on('fileSuccess', function (file, message) {
-  console.log(file,message)
+uploader.on('fileSuccess', function (rootFile, file, message) {
+  console.log(rootFile, file, message)
 })
-uploader.on('fileError', function (file, message) {
-  console.log(file, message)
+uploader.on('fileComplete', function (rootFile) {
+  console.log(rootFile)
+})
+uploader.on('fileError', function (rootFile, file, message) {
+  console.log(rootFile, file, message)
 })
 ```
 
