@@ -192,10 +192,11 @@ parameter must be adjusted together with `progressCallbacksInterval` parameter. 
 
 #### Events
 
-* `.fileSuccess(file, message, chunk)` A specific file was completed. First argument `file` is instance of `Uploader.File`, second argument `message` contains server response. Response is always a string. 
+* `.fileSuccess(rootFile, file, message, chunk)` A specific file was completed. First argument `file` is instance of `Uploader.File`, second argument `message` contains server response. Response is always a string. 
 Third argument `chunk` is instance of `Uploader.Chunk`. You can get response status by accessing xhr 
 object `chunk.xhr.status`.
-* `.fileProgress(file, chunk)` Uploading progressed for a specific file.
+* `.fileComplete(rootFile)` A root file(Folder) was completed.
+* `.fileProgress(rootFile, file, chunk)` Uploading progressed for a specific file.
 * `.fileAdded(file, event)` This event is used for file validation. To reject this file return false.
 This event is also called before file is added to upload queue,
 this means that calling `uploader.upload()` function will not start current file upload.
@@ -204,13 +205,11 @@ added.
 * `.filesAdded(array, event)` Same as fileAdded, but used for multiple file validation.
 * `.filesSubmitted(array, event)` Same as filesAdded, but happens after the file is added to upload queue. Can be used to start upload of currently added files.
 * `.fileRemoved(file)` The specific file was removed from the upload queue. Combined with filesSubmitted, can be used to notify UI to update its state to match the upload queue.
-* `.fileRetry(file, chunk)` Something went wrong during upload of a specific file, uploading is being 
+* `.fileRetry(rootFile, file, chunk)` Something went wrong during upload of a specific file, uploading is being 
 retried.
-* `.fileError(file, message, chunk)` An error occurred during upload of a specific file.
+* `.fileError(rootFile, file, message, chunk)` An error occurred during upload of a specific file.
 * `.uploadStart()` Upload has been started.
 * `.complete()` Uploading completed.
-* `.progress()` Uploading progress.
-* `.error(message, file, chunk)` An error, including fileError, occurred.
 * `.catchAll(event, ...)` Listen to all the events listed above with the same callback function.
 
 ### Uploader.File
@@ -244,7 +243,6 @@ If `.isFolder` is `false` then these properties will be added:
 * `.bootstrap()` Rebuild the state of a `Uploader.File` object, including reassigning chunks and XMLHttpRequest instances.
 * `.isUploading()` Returns a boolean indicating whether file chunks is uploading.
 * `.isComplete()` Returns a boolean indicating whether the file has completed uploading and received a server response.
-* `.isError` Returns a boolean indicating whether the file has an error.
 * `.sizeUploaded()` Returns size uploaded in bytes.
 * `.timeRemaining()` Returns remaining time to finish upload file in seconds. Accuracy is based on average speed. If speed is zero, time remaining will be equal to positive infinity `Number.POSITIVE_INFINITY`
 * `.getExtension()` Returns file extension in lowercase.
