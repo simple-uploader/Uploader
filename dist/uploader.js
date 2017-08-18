@@ -813,6 +813,7 @@ function File (uploader, file, parent) {
   this.files = []
   this.fileList = []
   this.chunks = []
+  this._errorFiles = []
 
   if (this.isRoot || !file) {
     this.file = null
@@ -838,6 +839,7 @@ function File (uploader, file, parent) {
 
   this.paused = false
   this.error = false
+  this.allError = false
   this.aborted = false
   this.averageSpeed = 0
   this.currentSpeed = 0
@@ -900,7 +902,7 @@ utils.extend(File.prototype, {
     }
 
     this.abort(true)
-    this.error = false
+    this._resetError()
     // Rebuild stack of chunks from file
     this._prevProgress = 0
     var round = opts.forceChunkSize ? Math.ceil : Math.floor
@@ -910,7 +912,7 @@ utils.extend(File.prototype, {
     }
   },
 
-  _measureSpeed: function () {
+  _measureSpeed: function (hard) {
     var averageSpeeds = 0
     var currentSpeeds = 0
     var num = 0
@@ -941,47 +943,87 @@ utils.extend(File.prototype, {
         this.averageSpeed = 0
       }
     }
-    if (this.parent) {
+    if (this.parent && (hard || this.parent._checkProgress())) {
       this.parent._measureSpeed()
     }
+  },
+
+  _checkProgress: function (file) {
+    return Date.now() - this._lastProgressCallback >= this.uploader.opts.progressCallbacksInterval
   },
 
   _chunkEvent: function (chunk, evt, message) {
     var uploader = this.uploader
     var STATUS = Chunk.STATUS
+    var that = this
+    var rootFile = this.getRoot()
+    var triggerProgress = function (hard) {
+      that._measureSpeed(hard)
+      uploader._trigger('fileProgress', rootFile, that, chunk)
+      that._lastProgressCallback = Date.now()
+    }
     switch (evt) {
       case STATUS.PROGRESS:
-        if (Date.now() - this._lastProgressCallback < uploader.opts.progressCallbacksInterval) {
-          break
+        if (this._checkProgress()) {
+          triggerProgress()
         }
-        this._measureSpeed()
-        uploader._trigger('fileProgress', this, chunk)
-        uploader._trigger('progress')
-        this._lastProgressCallback = Date.now()
         break
       case STATUS.ERROR:
-        this.error = true
+        this._error()
         this.abort(true)
-        uploader._trigger('fileError', this, message, chunk)
-        uploader._trigger('error', message, this, chunk)
+        uploader._trigger('fileError', rootFile, this, message, chunk)
         break
       case STATUS.SUCCESS:
         if (this.error) {
           return
         }
-        this._measureSpeed()
-        uploader._trigger('fileProgress', this, chunk)
-        uploader._trigger('progress')
-        this._lastProgressCallback = Date.now()
+        clearTimeout(this._progeressId)
+        var timeDiff = Date.now() - this._lastProgressCallback
+        if (timeDiff < uploader.opts.progressCallbacksInterval) {
+          this._progeressId = setTimeout(triggerProgress, uploader.opts.progressCallbacksInterval - timeDiff)
+        }
         if (this.isComplete()) {
+          clearTimeout(this._progeressId)
+          triggerProgress(true)
           this.currentSpeed = 0
           this.averageSpeed = 0
-          uploader._trigger('fileSuccess', this, message, chunk)
+          uploader._trigger('fileSuccess', rootFile, this, message, chunk)
+          if (rootFile.isComplete()) {
+            uploader._trigger('fileComplete', rootFile)
+          }
         }
         break
       case STATUS.RETRY:
-        uploader._trigger('fileRetry', this, chunk)
+        uploader._trigger('fileRetry', rootFile, this, chunk)
         break
+    }
+  },
+
+  _error: function () {
+    this.error = this.allError = true
+    var parent = this.parent
+    while (parent && parent !== this.uploader) {
+      parent._errorFiles.push(this)
+      parent.error = true
+      if (parent._errorFiles.length === parent.files.length) {
+        parent.allError = true
+      }
+      parent = parent.parent
+    }
+  },
+
+  _resetError: function () {
+    this.error = this.allError = false
+    var parent = this.parent
+    var index = -1
+    while (parent && parent !== this.uploader) {
+      index = parent._errorFiles.indexOf(this)
+      parent._errorFiles.splice(index, 1)
+      parent.allError = false
+      if (!parent._errorFiles.length) {
+        parent.error = false
+      }
+      parent = parent.parent
     }
   },
 
@@ -1003,19 +1045,6 @@ utils.extend(File.prototype, {
       })
     })
     return !outstanding
-  },
-
-  isError: function () {
-    var error = false
-    this._eachAccess(function (file) {
-      if (file.error) {
-        error = true
-        return false
-      }
-    }, function () {
-      error = this.error
-    })
-    return error
   },
 
   isUploading: function () {
@@ -1070,13 +1099,16 @@ utils.extend(File.prototype, {
   },
 
   retry: function (file) {
+    var fileRetry = function (file) {
+      if (file.error) {
+        file.bootstrap()
+      }
+    }
     if (file) {
-      file.bootstrap()
+      fileRetry(file)
     } else {
-      this._eachAccess(function (f) {
-        f.bootstrap()
-      }, function () {
-        this.bootstrap()
+      this._eachAccess(fileRetry, function () {
+        fileRetry(this)
       })
     }
     this.uploader.upload()

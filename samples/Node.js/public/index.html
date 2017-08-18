@@ -108,26 +108,21 @@
             // Hide pause/resume when the upload has completed
             $('.uploader-progress .progress-resume-link, .uploader-progress .progress-pause-link').hide();
           });
-          r.on('fileSuccess', function (file, message) {
-            var root = file.getRoot()
-            if (!root.isComplete()) {
-              return
-            }
-            var $self = root.$el
+          r.on('fileComplete', function (file) {
+            var $self = file.$el
             // Reflect that the file upload has completed
             $self.find('.uploader-file-progress').text('(completed)');
             $self.find('.uploader-file-pause, .uploader-file-resume').remove();
           });
-          r.on('fileError', function (file, message) {
-            file.getRoot().$el.find('.uploader-file-progress').html('(file could not be uploaded: ' + message + ')')
+          r.on('fileError', function (rootFile, file, message) {
+            rootFile.$el.find('.uploader-file-progress').html('(file could not be uploaded: ' + message + ')')
           });
-          r.on('fileProgress', function (file) {
+          r.on('fileProgress', function (rootFile, file) {
             // Handle progress for both the file and the overall upload
-            file = file.getRoot()
-            file.$el.find('.uploader-file-progress')
-              .html(Math.floor(file.progress()*100) + '% '
-                + readablizeBytes(file.averageSpeed) + '/s '
-                + secondsToStr(file.timeRemaining()) + ' remaining') ;
+            rootFile.$el.find('.uploader-file-progress')
+              .html(Math.floor(rootFile.progress()*100) + '% '
+                + readablizeBytes(rootFile.averageSpeed) + '/s '
+                + secondsToStr(rootFile.timeRemaining()) + ' remaining') ;
             $('.progress-bar').css({width:Math.floor(r.progress()*100) + '%'});
           });
           r.on('uploadStart', function () {
