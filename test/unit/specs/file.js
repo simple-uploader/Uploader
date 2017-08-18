@@ -29,16 +29,16 @@ describe('Uploader.File functions - file', function () {
     expect(file.getExtension()).toBe('e')
   })
 
+  it('error', function () {
+    expect(file.error).toBe(false)
+  })
+
   it('getSize', function () {
     expect(file.getSize()).toBe(2)
   })
 
   it('getFormatSize', function () {
     expect(file.getFormatSize()).toBe('2 bytes')
-  })
-
-  it('isError', function () {
-    expect(file.isError()).toBe(false)
   })
 
   it('isComplete', function () {

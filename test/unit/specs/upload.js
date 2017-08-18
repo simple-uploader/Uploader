@@ -97,6 +97,7 @@ describe('upload file', function () {
       events.push(event)
     })
     uploader.opts.chunkSize = 1
+    uploader.opts.progressCallbacksInterval = 0
     uploader.addFile(new File(['12'], 'file3'))
     var file = uploader.files[0]
     expect(file.chunks.length).toBe(2)
@@ -109,33 +110,31 @@ describe('upload file', function () {
     expect(events[3]).toBe('uploadStart')
     // Async
     requests[0].respond(200)
-    expect(events.length).toBe(6)
+    expect(events.length).toBe(5)
     expect(events[4]).toBe('fileProgress')
-    expect(events[5]).toBe('progress')
     requests[1].respond(400)
-    expect(events.length).toBe(6)
+    expect(events.length).toBe(5)
     requests[2].progress(5, 10, true)
-    expect(events.length).toBe(8)
-    expect(events[6]).toBe('fileProgress')
-    expect(events[7]).toBe('progress')
+    expect(events.length).toBe(6)
+    expect(events[5]).toBe('fileProgress')
     requests[2].respond(200)
-    expect(events.length).toBe(11)
-    expect(events[8]).toBe('fileProgress')
-    expect(events[9]).toBe('progress')
-    expect(events[10]).toBe('fileSuccess')
+    expect(events.length).toBe(9)
+    expect(events[6]).toBe('fileProgress')
+    expect(events[7]).toBe('fileSuccess')
+    expect(events[8]).toBe('fileComplete')
 
     jasmine.clock().tick(1)
-    expect(events.length).toBe(12)
-    expect(events[11]).toBe('complete')
+    expect(events.length).toBe(10)
+    expect(events[9]).toBe('complete')
 
     uploader.upload()
-    expect(events.length).toBe(13)
-    expect(events[12]).toBe('uploadStart')
+    expect(events.length).toBe(11)
+    expect(events[10]).toBe('uploadStart')
 
     // complete event is always asynchronous
     jasmine.clock().tick(1)
-    expect(events.length).toBe(14)
-    expect(events[13]).toBe('complete')
+    expect(events.length).toBe(12)
+    expect(events[11]).toBe('complete')
   })
 
   it('should pause and resume file', function () {
@@ -259,7 +258,7 @@ describe('upload file', function () {
     expect(file.chunks.length).toBe(0)
 
     expect(error.calls.count()).toBe(1)
-    expect(error).toHaveBeenCalledWith(file, 'Err', secondChunk)
+    expect(error).toHaveBeenCalledWith(file.getRoot(), file, 'Err', secondChunk)
     expect(progress.calls.count()).toBe(1)
     expect(success).not.toHaveBeenCalled()
     expect(retry.calls.count()).toBe(2)
@@ -413,8 +412,8 @@ describe('upload file', function () {
     expect(file.chunks[0].preprocessState).toBe(1)
     file.chunks[0].preprocessFinished()
     expect(requests.length).toBe(1)
-    requests[0].respond(200, [], "response")
-    expect(success).toHaveBeenCalledWith(file, "response", file.chunks[0])
+    requests[0].respond(200, [], 'response')
+    expect(success).toHaveBeenCalledWith(file.getRoot(), file, 'response', file.chunks[0])
     expect(error).not.toHaveBeenCalled()
   })
 
@@ -453,9 +452,9 @@ describe('upload file', function () {
       file.chunks[i].preprocessFinished()
       file.pause()
       file.resume()
-      requests[requests.length-1].respond(200, [], "response")
+      requests[requests.length-1].respond(200, [], 'response')
     }
-    expect(success).toHaveBeenCalledWith(file, "response", file.chunks[file.chunks.length-1])
+    expect(success).toHaveBeenCalledWith(file.getRoot(), file, 'response', file.chunks[file.chunks.length-1])
     expect(error).not.toHaveBeenCalled()
   })
 
@@ -465,8 +464,8 @@ describe('upload file', function () {
     uploader.addFile(new File(['abc'], 'abccc'))
     var file = uploader.files[0]
     uploader.upload()
-    requests[0].respond(200, [], "response")
-    expect(success).toHaveBeenCalledWith(file, "response", file.chunks[0])
+    requests[0].respond(200, [], 'response')
+    expect(success).toHaveBeenCalledWith(file.getRoot(), file, 'response', file.chunks[0])
   })
 
   it('should have upload speed', function () {
@@ -504,11 +503,11 @@ describe('upload file', function () {
     expect(fileFirst.currentSpeed).toBe(5)
     expect(fileFirst.averageSpeed).toBe(3.75)
 
-    requests[0].respond(200, [], "response")
+    requests[0].respond(200, [], 'response')
     expect(fileFirst.currentSpeed).toBe(0)
     expect(fileFirst.averageSpeed).toBe(0)
 
-    requests[1].respond(200, [], "response")
+    requests[1].respond(200, [], 'response')
     expect(fileFirst.sizeUploaded()).toBe(10)
     expect(fileFirst.timeRemaining()).toBe(0)
     expect(fileSecond.sizeUploaded()).toBe(5)

@@ -173,6 +173,7 @@ utils.extend(File.prototype, {
           return
         }
         clearTimeout(this._progeressId)
+        this._progeressId = 0
         var timeDiff = Date.now() - this._lastProgressCallback
         if (timeDiff < uploader.opts.progressCallbacksInterval) {
           this._progeressId = setTimeout(triggerProgress, uploader.opts.progressCallbacksInterval - timeDiff)
@@ -186,6 +187,8 @@ utils.extend(File.prototype, {
           if (rootFile.isComplete()) {
             uploader._trigger('fileComplete', rootFile)
           }
+        } else if (!this._progeressId) {
+          triggerProgress()
         }
         break
       case STATUS.RETRY:
@@ -300,10 +303,10 @@ utils.extend(File.prototype, {
       }
     }
     if (file) {
-      fileRetry(file)
+      file.bootstrap()
     } else {
       this._eachAccess(fileRetry, function () {
-        fileRetry(this)
+        this.bootstrap()
       })
     }
     this.uploader.upload()

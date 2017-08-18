@@ -39,10 +39,10 @@ describe('Uploader.File functions - folder', function () {
     expect(file.getFormatSize()).toBe('2 bytes')
   })
 
-  it('isError', function () {
-    expect(file.isError()).toBe(false)
+  it('error', function () {
+    expect(file.error).toBe(false)
     file.error = true
-    expect(file.isError()).toBe(true)
+    expect(file.error).toBe(true)
   })
 
   it('getRoot', function () {
@@ -53,10 +53,10 @@ describe('Uploader.File functions - folder', function () {
     expect(rootFile.getFormatSize()).toBe('2 bytes')
     expect(rootFile.getExtension()).toBe('')
     expect(rootFile.getType()).toBe('folder')
-    expect(rootFile.isError()).toBe(false)
-    file.error = true
-    expect(rootFile.isError()).toBe(true)
-    file.error = false
+    expect(rootFile.error).toBe(false)
+    file._error()
+    expect(rootFile.error).toBe(true)
+    file._resetError()
     expect(rootFile.isComplete()).toBe(false)
     expect(rootFile.isUploading()).toBe(false)
     expect(uploader.getRoot()).toBe(uploader)
