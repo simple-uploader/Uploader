@@ -49,7 +49,7 @@
         (function () {
           var r = new Uploader({
             target: '/upload',
-            chunkSize: 1024*1024,
+            chunkSize: 1024 * 1024,
             testChunks: false
           });
           // Flow.js isn't supported, fall back on a different method
@@ -65,7 +65,7 @@
           r.assignBrowse($('.uploader-browse-image')[0], false, false, {accept: 'image/*'});
 
           // Handle file add event
-          r.on('filesAdded', function (file, fileList) {
+          r.on('filesAdded', function (files, fileList) {
             // Show progress bar
             $('.uploader-progress, .uploader-list').show();
             fileList.forEach(function (file) {
@@ -101,15 +101,15 @@
               $('.uploader-list').append($self);
             });
           });
-          r.on('filesSubmitted', function (file) {
+          r.on('filesSubmitted', function (files, fileList) {
             r.upload();
           });
           r.on('complete', function () {
             // Hide pause/resume when the upload has completed
             $('.uploader-progress .progress-resume-link, .uploader-progress .progress-pause-link').hide();
           });
-          r.on('fileComplete', function (file) {
-            var $self = file.$el
+          r.on('fileComplete', function (rooFile) {
+            var $self = rooFile.$el
             // Reflect that the file upload has completed
             $self.find('.uploader-file-progress').text('(completed)');
             $self.find('.uploader-file-pause, .uploader-file-resume').remove();
