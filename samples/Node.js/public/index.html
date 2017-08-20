@@ -22,7 +22,7 @@
       <script src="uploader.js"></script>
 
       <div class="uploader-error">
-        Your browser, unfortunately, is not supported by Flow.js. The library requires support for <a href="http://www.w3.org/TR/FileAPI/">the HTML5 File API</a> along with <a href="http://www.w3.org/TR/FileAPI/#normalization-of-params">file slicing</a>.
+        Your browser, unfortunately, is not supported by Uploader.js. The library requires support for <a href="http://www.w3.org/TR/FileAPI/">the HTML5 File API</a> along with <a href="http://www.w3.org/TR/FileAPI/#normalization-of-params">file slicing</a>.
       </div>
 
       <div class="uploader-drop" ondragenter="jQuery(this).addClass('uploader-dragover');" ondragend="jQuery(this).removeClass('uploader-dragover');" ondrop="jQuery(this).removeClass('uploader-dragover');">
@@ -52,7 +52,7 @@
             chunkSize: 1024 * 1024,
             testChunks: false
           });
-          // Flow.js isn't supported, fall back on a different method
+          // Uploader.js isn't supported, fall back on a different method
           if (!r.support) {
             $('.uploader-error').show();
             return ;
