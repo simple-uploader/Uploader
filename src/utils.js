@@ -14,8 +14,11 @@ var isPlainObject = function (obj) {
   return serialize.call(obj) === '[object Object]' && Object.getPrototypeOf(obj) === oproto
 }
 
+var i = 0
 var utils = {
-
+  uid: function () {
+    return ++i
+  },
   noop: function () {},
   bind: function (fn, context) {
     return function () {

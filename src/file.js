@@ -9,6 +9,7 @@ function File (uploader, file, parent) {
   this.fileList = []
   this.chunks = []
   this._errorFiles = []
+  this.id = utils.uid()
 
   if (this.isRoot || !file) {
     this.file = null
@@ -185,7 +186,7 @@ utils.extend(File.prototype, {
           this.averageSpeed = 0
           uploader._trigger('fileSuccess', rootFile, this, message, chunk)
           if (rootFile.isComplete()) {
-            uploader._trigger('fileComplete', rootFile)
+            uploader._trigger('fileComplete', rootFile, this)
           }
         } else if (!this._progeressId) {
           triggerProgress()
@@ -287,12 +288,6 @@ utils.extend(File.prototype, {
   },
 
   cancel: function () {
-    if (this.isFolder) {
-      for (var i = this.files.length - 1; i >= 0; i--) {
-        this.files[i].cancel()
-      }
-      return
-    }
     this.uploader.removeFile(this)
   },
 
