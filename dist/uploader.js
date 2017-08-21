@@ -1,6 +1,6 @@
 /*!
  * Uploader - Uploader library implements html5 file upload and provides multiple simultaneous, stable, fault tolerant and resumable uploads
- * @version v0.0.3
+ * @version v0.0.4
  * @author dolymood <dolymood@gmail.com>
  * @link https://github.com/simple-uploader/Uploader
  * @license MIT
@@ -352,7 +352,7 @@ var event = _dereq_('./event')
 var File = _dereq_('./file')
 var Chunk = _dereq_('./chunk')
 
-var version = '0.0.3'
+var version = '0.0.4'
 
 // ie10+
 var ie10plus = window.navigator.msPointerEnabled
@@ -501,6 +501,12 @@ utils.extend(Uploader.prototype, {
 
   addFile: function (file, evt) {
     this.addFiles([file], evt)
+  },
+
+  cancel: function () {
+    for (var i = this.fileList.length - 1; i >= 0; i--) {
+      this.fileList[i].cancel()
+    }
   },
 
   removeFile: function (file) {
@@ -814,6 +820,7 @@ function File (uploader, file, parent) {
   this.fileList = []
   this.chunks = []
   this._errorFiles = []
+  this.id = utils.uid()
 
   if (this.isRoot || !file) {
     this.file = null
@@ -990,7 +997,7 @@ utils.extend(File.prototype, {
           this.averageSpeed = 0
           uploader._trigger('fileSuccess', rootFile, this, message, chunk)
           if (rootFile.isComplete()) {
-            uploader._trigger('fileComplete', rootFile)
+            uploader._trigger('fileComplete', rootFile, this)
           }
         } else if (!this._progeressId) {
           triggerProgress()
@@ -1092,12 +1099,6 @@ utils.extend(File.prototype, {
   },
 
   cancel: function () {
-    if (this.isFolder) {
-      for (var i = this.files.length - 1; i >= 0; i--) {
-        this.files[i].cancel()
-      }
-      return
-    }
     this.uploader.removeFile(this)
   },
 
@@ -1337,8 +1338,11 @@ var isPlainObject = function (obj) {
   return serialize.call(obj) === '[object Object]' && Object.getPrototypeOf(obj) === oproto
 }
 
+var i = 0
 var utils = {
-
+  uid: function () {
+    return ++i
+  },
   noop: function () {},
   bind: function (fn, context) {
     return function () {
