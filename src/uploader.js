@@ -154,6 +154,12 @@ utils.extend(Uploader.prototype, {
     this.addFiles([file], evt)
   },
 
+  cancel: function () {
+    for (var i = this.fileList.length - 1; i >= 0; i--) {
+      this.fileList[i].cancel()
+    }
+  },
+
   removeFile: function (file) {
     File.prototype.removeFile.call(this, file)
     this._trigger('fileRemoved', file)
