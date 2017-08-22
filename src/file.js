@@ -2,13 +2,14 @@ var utils = require('./utils')
 var Chunk = require('./chunk')
 
 function File (uploader, file, parent) {
-  this.uploader = uploader
+  utils.defineNonEnumerable(this, 'uploader', uploader)
   this.isRoot = this.isFolder = uploader === this
-  this.parent = parent || null
-  this.files = []
-  this.fileList = []
-  this.chunks = []
-  this._errorFiles = []
+  utils.defineNonEnumerable(this, 'parent', parent || null)
+  utils.defineNonEnumerable(this, 'files', [])
+  utils.defineNonEnumerable(this, 'fileList', [])
+  utils.defineNonEnumerable(this, 'chunks', [])
+  utils.defineNonEnumerable(this, '_errorFiles', [])
+  utils.defineNonEnumerable(this, 'file', null)
   this.id = utils.uid()
 
   if (this.isRoot || !file) {

@@ -1,9 +1,9 @@
 var utils = require('./utils')
 
 function Chunk (uploader, file, offset) {
-  this.uploader = uploader
-  this.file = file
-  this.bytes = null
+  utils.defineNonEnumerable(this, 'uploader', uploader)
+  utils.defineNonEnumerable(this, 'file', file)
+  utils.defineNonEnumerable(this, 'bytes', null)
   this.offset = offset
   this.tested = false
   this.retries = 0
