@@ -7,7 +7,7 @@ var uploader = require('./uploader-node.js')('tmp');
 var app = express();
 
 // Configure access control allow origin header stuff
-var ACCESS_CONTROLL_ALLOW_ORIGIN = false;
+var ACCESS_CONTROLL_ALLOW_ORIGIN = true;
 
 // Host most stuff in the public folder
 app.use(express.static(__dirname + '/public'));
@@ -20,7 +20,9 @@ app.post('/upload', multipartMiddleware, function(req, res) {
     if (ACCESS_CONTROLL_ALLOW_ORIGIN) {
       res.header("Access-Control-Allow-Origin", "*");
     }
-    res.send(status);
+    setTimeout(function () {
+      res.send(status);
+    }, 500);
   });
 });
 
