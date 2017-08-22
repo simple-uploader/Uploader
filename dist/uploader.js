@@ -1,6 +1,6 @@
 /*!
  * Uploader - Uploader library implements html5 file upload and provides multiple simultaneous, stable, fault tolerant and resumable uploads
- * @version v0.0.5
+ * @version v0.0.6
  * @author dolymood <dolymood@gmail.com>
  * @link https://github.com/simple-uploader/Uploader
  * @license MIT
@@ -352,7 +352,7 @@ var event = _dereq_('./event')
 var File = _dereq_('./file')
 var Chunk = _dereq_('./chunk')
 
-var version = '0.0.5'
+var version = '0.0.6'
 
 // ie10+
 var ie10plus = window.navigator.msPointerEnabled
@@ -1255,7 +1255,6 @@ utils.extend(File.prototype, {
       }
     }
     this._removeFile(file)
-    this._delFilePath(file)
   },
 
   _delFilePath: function (file) {
@@ -1273,9 +1272,11 @@ utils.extend(File.prototype, {
         this.files.splice(i, 1)
         file.abort()
         var parent = file.parent
+        var newParent
         while (parent && parent !== this) {
+          newParent = parent.parent
           parent._removeFile(file)
-          parent = parent.parent
+          parent = newParent
         }
         return false
       }
@@ -1286,6 +1287,10 @@ utils.extend(File.prototype, {
         return false
       }
     }, this)
+    if (!this.isRoot && this.isFolder && !this.files.length) {
+      this.parent._removeFile(this)
+      this.uploader._delFilePath(this)
+    }
     file.parent = null
   },
 
