@@ -156,6 +156,15 @@ var utils = {
     } else {
       return (size / 1024.0 / 1024.0 / 1024.0).toFixed(1) + ' GB'
     }
+  },
+
+  defineNonEnumerable: function (target, key, value) {
+    Object.defineProperty(target, key, {
+      enumerable: false,
+      configurable: true,
+      writable: true,
+      value: value
+    })
   }
 }
 
