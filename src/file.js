@@ -444,7 +444,6 @@ utils.extend(File.prototype, {
       }
     }
     this._removeFile(file)
-    this._delFilePath(file)
   },
 
   _delFilePath: function (file) {
@@ -462,9 +461,11 @@ utils.extend(File.prototype, {
         this.files.splice(i, 1)
         file.abort()
         var parent = file.parent
+        var newParent
         while (parent && parent !== this) {
+          newParent = parent.parent
           parent._removeFile(file)
-          parent = parent.parent
+          parent = newParent
         }
         return false
       }
@@ -475,6 +476,10 @@ utils.extend(File.prototype, {
         return false
       }
     }, this)
+    if (!this.isRoot && this.isFolder && !this.files.length) {
+      this.parent._removeFile(this)
+      this.uploader._delFilePath(this)
+    }
     file.parent = null
   },
 
