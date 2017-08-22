@@ -1,6 +1,6 @@
 /*!
  * Uploader - Uploader library implements html5 file upload and provides multiple simultaneous, stable, fault tolerant and resumable uploads
- * @version v0.0.4
+ * @version v0.0.5
  * @author dolymood <dolymood@gmail.com>
  * @link https://github.com/simple-uploader/Uploader
  * @license MIT
@@ -9,9 +9,9 @@
 var utils = _dereq_('./utils')
 
 function Chunk (uploader, file, offset) {
-  this.uploader = uploader
-  this.file = file
-  this.bytes = null
+  utils.defineNonEnumerable(this, 'uploader', uploader)
+  utils.defineNonEnumerable(this, 'file', file)
+  utils.defineNonEnumerable(this, 'bytes', null)
   this.offset = offset
   this.tested = false
   this.retries = 0
@@ -352,7 +352,7 @@ var event = _dereq_('./event')
 var File = _dereq_('./file')
 var Chunk = _dereq_('./chunk')
 
-var version = '0.0.4'
+var version = '0.0.5'
 
 // ie10+
 var ie10plus = window.navigator.msPointerEnabled
@@ -813,13 +813,14 @@ var utils = _dereq_('./utils')
 var Chunk = _dereq_('./chunk')
 
 function File (uploader, file, parent) {
-  this.uploader = uploader
+  utils.defineNonEnumerable(this, 'uploader', uploader)
   this.isRoot = this.isFolder = uploader === this
-  this.parent = parent || null
-  this.files = []
-  this.fileList = []
-  this.chunks = []
-  this._errorFiles = []
+  utils.defineNonEnumerable(this, 'parent', parent || null)
+  utils.defineNonEnumerable(this, 'files', [])
+  utils.defineNonEnumerable(this, 'fileList', [])
+  utils.defineNonEnumerable(this, 'chunks', [])
+  utils.defineNonEnumerable(this, '_errorFiles', [])
+  utils.defineNonEnumerable(this, 'file', null)
   this.id = utils.uid()
 
   if (this.isRoot || !file) {
@@ -1480,6 +1481,15 @@ var utils = {
     } else {
       return (size / 1024.0 / 1024.0 / 1024.0).toFixed(1) + ' GB'
     }
+  },
+
+  defineNonEnumerable: function (target, key, value) {
+    Object.defineProperty(target, key, {
+      enumerable: false,
+      configurable: true,
+      writable: true,
+      value: value
+    })
   }
 }
 
