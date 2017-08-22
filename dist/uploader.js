@@ -1478,7 +1478,7 @@ var utils = {
 
   formatSize: function (size) {
     if (size < 1024) {
-      return size + ' bytes'
+      return size.toFixed(0) + ' bytes'
     } else if (size < 1024 * 1024) {
       return (size / 1024.0).toFixed(0) + ' KB'
     } else if (size < 1024 * 1024 * 1024) {
