@@ -1,4 +1,4 @@
-# Uploader [![Build Status](https://travis-ci.org/simple-uploader/Uploader.svg?branch=master)](https://travis-ci.org/simple-uploader/Uploader?branch=master) [![codecov.io](http://codecov.io/github/simple-uploader/Uploader/coverage.svg?branch=master)](http://codecov.io/github/simple-uploader/Uploader?branch=master) [![Build Status](https://saucelabs.com/buildstatus/uploader)](https://saucelabs.com/u/uploader)
+# simple-uploader.js [![Build Status](https://travis-ci.org/simple-uploader/Uploader.svg?branch=master)](https://travis-ci.org/simple-uploader/Uploader?branch=master) [![codecov.io](http://codecov.io/github/simple-uploader/Uploader/coverage.svg?branch=master)](http://codecov.io/github/simple-uploader/Uploader?branch=master) [![Build Status](https://saucelabs.com/buildstatus/uploader)](https://saucelabs.com/u/uploader)
 
 [![Sauce Test Status](https://saucelabs.com/browser-matrix/uploader.svg)](https://saucelabs.com/u/uploader)
 
@@ -8,7 +8,7 @@ Forked [flow.js](https://github.com/flowjs/flow.js) but refactor it.
 
 The library is designed to introduce fault-tolerance into the upload of large files through HTTP. This is done by splitting each file into small chunks. Then, whenever the upload of a chunk fails, uploading is retried until the procedure completes. This allows uploads to automatically resume uploading after a network connection is lost either locally or to the server. Additionally, it allows for users to pause, resume and even recover uploads without losing state because only the currently uploading chunks will be aborted, not the entire upload.
 
-Uploader does not have any external dependencies other than the `HTML5 File API`. This is relied on for the ability to chunk files into smaller pieces. Currently, this means that support is limited to Firefox 4+, Chrome 11+, Safari 6+ and Internet Explorer 10+.
+Uploader (simple-uploader.js) does not have any external dependencies other than the `HTML5 File API`. This is relied on for the ability to chunk files into smaller pieces. Currently, this means that support is limited to Firefox 4+, Chrome 11+, Safari 6+ and Internet Explorer 10+.
 
 Samples and examples are available in the `samples/` folder. Please push your own as Markdown to help document the project.
 
