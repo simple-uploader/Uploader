@@ -205,8 +205,8 @@ This event is also called before file is added to upload queue,
 this means that calling `uploader.upload()` function will not start current file upload.
 Optionally, you can use the browser `event` object from when the file was
 added.
-* `.filesAdded(array, event)` Same as fileAdded, but used for multiple file validation.
-* `.filesSubmitted(array, event)` Same as filesAdded, but happens after the file is added to upload queue. Can be used to start upload of currently added files.
+* `.filesAdded(files, fileList, event)` Same as fileAdded, but used for multiple file validation.
+* `.filesSubmitted(files, fileList, event)` Same as filesAdded, but happens after the file is added to upload queue. Can be used to start upload of currently added files.
 * `.fileRemoved(file)` The specific file was removed from the upload queue. Combined with filesSubmitted, can be used to notify UI to update its state to match the upload queue.
 * `.fileRetry(rootFile, file, chunk)` Something went wrong during upload of a specific file, uploading is being 
 retried.
