@@ -2,6 +2,8 @@
 
 [![Sauce Test Status](https://saucelabs.com/browser-matrix/uploader.svg)](https://saucelabs.com/u/uploader)
 
+[中文](./README_zh-CN.md)
+
 A JavaScript library providing multiple simultaneous, stable, fault-tolerant and resumable/restartable file uploads via the HTML5 File API.
 
 Forked [flow.js](https://github.com/flowjs/flow.js) but refactor it.
@@ -177,9 +179,8 @@ parameter must be adjusted together with `progressCallbacksInterval` parameter. 
 * `.unAssignDrop(domNodes)` Unassign one or more DOM nodes as a drop target.
 * `.on(event, callback)` Listen for event from Uploader.js (see below)
 * `.off([event, [callback]])`:
-    * `.off()` All events are removed.
-    * `.off(event)` Remove all callbacks of specific event.
-    * `.off(event, callback)` Remove specific callback of event. `callback` should be a `Function`.
+  * `.off(event)` Remove all callbacks of specific event.
+  * `.off(event, callback)` Remove specific callback of event. `callback` should be a `Function`.
 * `.upload()` Start or resume uploading.
 * `.pause()` Pause uploading.
 * `.resume()` Resume uploading.
@@ -195,8 +196,8 @@ parameter must be adjusted together with `progressCallbacksInterval` parameter. 
 
 #### Events
 
-* `.fileSuccess(rootFile, file, message, chunk)` A specific file was completed. First argument `file` is instance of `Uploader.File`, second argument `message` contains server response. Response is always a string. 
-Third argument `chunk` is instance of `Uploader.Chunk`. You can get response status by accessing xhr 
+* `.fileSuccess(rootFile, file, message, chunk)` A specific file was completed. First argument `rootFile` is the root `Uploader.File` instance which contains or equal the completed file, second argument `file` argument is instance of `Uploader.File` too, it's the current completed file object, third argument `message` contains server response. Response is always a string. 
+Fourth argument `chunk` is instance of `Uploader.Chunk`. You can get response status by accessing xhr 
 object `chunk.xhr.status`.
 * `.fileComplete(rootFile)` A root file(Folder) was completed.
 * `.fileProgress(rootFile, file, chunk)` Uploading progressed for a specific file.
