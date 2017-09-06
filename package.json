@@ -44,7 +44,6 @@
     "eslint-plugin-standard": "^3.0.1",
     "gulp": "^3.9.1",
     "gulp-browserify": "^0.5.1",
-    "gulp-bump": "^2.7.0",
     "gulp-concat": "^2.6.1",
     "gulp-eslint": "^4.0.0",
     "gulp-git": "^2.4.1",
