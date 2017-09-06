@@ -213,22 +213,30 @@ var versioning = function () {
   return 'patch'
 }
 var bump = require('gulp-bump')
-gulp.task('version', ['cover', 'build', 'sauce'], function () {
+gulp.task('version', function () {
   return gulp.src('./package.json')
     .pipe(bump({type: versioning()}))
     .pipe(gulp.dest('./'))
 })
 
+gulp.task('post-build', ['version'], function (done) {
+  gulp.start('build').on('task_stop', function (e) {
+    if (e.task === 'build') {
+      done()
+    }
+  })
+})
+
 var git = require('gulp-git')
 var tag_version = require('gulp-tag-version')
-gulp.task('git', ['version'], function (done) {
+gulp.task('git', ['post-build'], function (done) {
   var v = require('./package.json').version
   gulp.src('./')
     .pipe(git.add({args: '-A'}))
     .pipe(git.commit('[release] ' + v))
     .pipe(tag_version({version: v}))
     .on('end', function () {
-      git.push('origin', 'master', {args: '--tags'})
+      // git.push('origin', 'master', {args: '--tags'})
       done()
     })
 })
