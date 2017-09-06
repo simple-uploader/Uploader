@@ -202,41 +202,16 @@ gulp.task('watch', function () {
 
 gulp.task('default', ['build', 'test'])
 
-var argv = require('yargs').argv
-var versioning = function () {
-  if (argv.minor) {
-    return 'minor'
-  }
-  if (argv.major) {
-    return 'major'
-  }
-  return 'patch'
-}
-var bump = require('gulp-bump')
-gulp.task('version', function () {
-  return gulp.src('./package.json')
-    .pipe(bump({type: versioning()}))
-    .pipe(gulp.dest('./'))
-})
-
-gulp.task('post-build', ['version'], function (done) {
-  gulp.start('build').on('task_stop', function (e) {
-    if (e.task === 'build') {
-      done()
-    }
-  })
-})
-
 var git = require('gulp-git')
 var tag_version = require('gulp-tag-version')
-gulp.task('git', ['post-build'], function (done) {
+gulp.task('git', ['build'], function (done) {
   var v = require('./package.json').version
   gulp.src('./')
     .pipe(git.add({args: '-A'}))
     .pipe(git.commit('[release] ' + v))
     .pipe(tag_version({version: v}))
     .on('end', function () {
-      // git.push('origin', 'master', {args: '--tags'})
+      git.push('origin', 'master', {args: '--tags'})
       done()
     })
 })
