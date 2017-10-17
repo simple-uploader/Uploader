@@ -1,6 +1,6 @@
 /*!
  * Uploader - Uploader library implements html5 file upload and provides multiple simultaneous, stable, fault tolerant and resumable uploads
- * @version v0.1.0
+ * @version v0.1.1
  * @author dolymood <dolymood@gmail.com>
  * @link https://github.com/simple-uploader/Uploader
  * @license MIT
@@ -352,7 +352,7 @@ var event = _dereq_('./event')
 var File = _dereq_('./file')
 var Chunk = _dereq_('./chunk')
 
-var version = '0.1.0'
+var version = '0.1.1'
 
 // ie10+
 var ie10plus = window.navigator.msPointerEnabled
@@ -391,7 +391,7 @@ function Uploader (opts) {
     return
   }
   this.supportDirectory = supportDirectory
-  this.filePaths = {}
+  utils.defineNonEnumerable(this, 'filePaths', {})
   this.opts = utils.extend({}, Uploader.defaults, opts || {})
 
   File.call(this, this)
@@ -482,6 +482,8 @@ utils.extend(Uploader.prototype, {
           _file.uniqueIdentifier = uniqueIdentifier
           if (this._trigger('fileAdded', _file, evt)) {
             _files.push(_file)
+          } else {
+            File.prototype.removeFile.call(this, _file)
           }
         }
       }
@@ -496,6 +498,10 @@ utils.extend(Uploader.prototype, {
         this.files.push(file)
       }, this)
       this._trigger('filesSubmitted', _files, newFileList, evt)
+    } else {
+      utils.each(newFileList, function (file) {
+        File.prototype.removeFile.call(this, file)
+      }, this)
     }
   },
 
@@ -1267,20 +1273,22 @@ utils.extend(File.prototype, {
   },
 
   _removeFile: function (file) {
-    !file.isFolder && utils.each(this.files, function (f, i) {
-      if (f === file) {
-        this.files.splice(i, 1)
-        file.abort()
-        var parent = file.parent
-        var newParent
-        while (parent && parent !== this) {
-          newParent = parent.parent
-          parent._removeFile(file)
-          parent = newParent
+    if (!file.isFolder) {
+      utils.each(this.files, function (f, i) {
+        if (f === file) {
+          this.files.splice(i, 1)
+          return false
         }
-        return false
+      }, this)
+      file.abort()
+      var parent = file.parent
+      var newParent
+      while (parent && parent !== this) {
+        newParent = parent.parent
+        parent._removeFile(file)
+        parent = newParent
       }
-    }, this)
+    }
     file.parent === this && utils.each(this.fileList, function (f, i) {
       if (f === file) {
         this.fileList.splice(i, 1)
