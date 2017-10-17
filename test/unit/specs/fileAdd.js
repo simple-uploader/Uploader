@@ -40,6 +40,7 @@ describe('fileAdd event', function () {
     })
     uploader.addFile(new File(['file part'], 'test'))
     expect(uploader.files.length).toBe(0)
+    expect(uploader.fileList.length).toBe(0)
   })
 
   it('should validate filesAdded', function () {
@@ -48,6 +49,7 @@ describe('fileAdd event', function () {
     })
     uploader.addFile(new File(['file part'], 'test'))
     expect(uploader.files.length).toBe(0)
+    expect(uploader.fileList.length).toBe(0)
   })
 
   it('should validate fileAdded and filesAdded', function () {

@@ -456,20 +456,22 @@ utils.extend(File.prototype, {
   },
 
   _removeFile: function (file) {
-    !file.isFolder && utils.each(this.files, function (f, i) {
-      if (f === file) {
-        this.files.splice(i, 1)
-        file.abort()
-        var parent = file.parent
-        var newParent
-        while (parent && parent !== this) {
-          newParent = parent.parent
-          parent._removeFile(file)
-          parent = newParent
+    if (!file.isFolder) {
+      utils.each(this.files, function (f, i) {
+        if (f === file) {
+          this.files.splice(i, 1)
+          return false
         }
-        return false
+      }, this)
+      file.abort()
+      var parent = file.parent
+      var newParent
+      while (parent && parent !== this) {
+        newParent = parent.parent
+        parent._removeFile(file)
+        parent = newParent
       }
-    }, this)
+    }
     file.parent === this && utils.each(this.fileList, function (f, i) {
       if (f === file) {
         this.fileList.splice(i, 1)

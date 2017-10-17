@@ -42,7 +42,7 @@ function Uploader (opts) {
     return
   }
   this.supportDirectory = supportDirectory
-  this.filePaths = {}
+  utils.defineNonEnumerable(this, 'filePaths', {})
   this.opts = utils.extend({}, Uploader.defaults, opts || {})
 
   File.call(this, this)
@@ -133,6 +133,8 @@ utils.extend(Uploader.prototype, {
           _file.uniqueIdentifier = uniqueIdentifier
           if (this._trigger('fileAdded', _file, evt)) {
             _files.push(_file)
+          } else {
+            File.prototype.removeFile.call(this, _file)
           }
         }
       }
@@ -147,6 +149,10 @@ utils.extend(Uploader.prototype, {
         this.files.push(file)
       }, this)
       this._trigger('filesSubmitted', _files, newFileList, evt)
+    } else {
+      utils.each(newFileList, function (file) {
+        File.prototype.removeFile.call(this, file)
+      }, this)
     }
   },
 
