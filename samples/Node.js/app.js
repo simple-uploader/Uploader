@@ -43,7 +43,7 @@ app.get('/upload', function(req, res) {
       res.header("Access-Control-Allow-Origin", "*");
     }
 
-    res.status(status == 'found' ? 200 : 404).send(status);
+    res.status(status == 'found' ? 200 : 204).send(status);
   });
 });
 

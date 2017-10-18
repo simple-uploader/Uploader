@@ -2,7 +2,17 @@
   var r = new Uploader({
     target: '/upload',
     chunkSize: 1024 * 1024,
-    testChunks: false
+    testChunks: true,
+    checkChunkUploadedByResponse: function (chunk, message) {
+      var objMessage = {}
+      try {
+        objMessage = JSON.parse(message)
+      } catch (e) {}
+      // fake response
+      // objMessage.uploaded_chunks = [2, 3, 4, 5, 6, 8, 10, 11, 12, 13, 17, 20, 21]
+      // check the chunk is uploaded
+      return (objMessage.uploaded_chunks || []).indexOf(chunk.offset + 1) >= 0
+    }
   });
   // simple-uploader.js isn't supported, fall back on a different method
   if (!r.support) {
