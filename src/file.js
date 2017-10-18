@@ -174,6 +174,7 @@ utils.extend(File.prototype, {
         if (this.error) {
           return
         }
+        this._updateUploadedChunks(message, chunk)
         clearTimeout(this._progeressId)
         this._progeressId = 0
         var timeDiff = Date.now() - this._lastProgressCallback
@@ -196,6 +197,19 @@ utils.extend(File.prototype, {
       case STATUS.RETRY:
         uploader._trigger('fileRetry', rootFile, this, chunk)
         break
+    }
+  },
+
+  _updateUploadedChunks: function (message, chunk) {
+    var checkChunkUploaded = this.uploader.opts.checkChunkUploadedByResponse
+    if (checkChunkUploaded) {
+      utils.each(this.chunks, function (_chunk) {
+        if (checkChunkUploaded.call(this, _chunk, message)) {
+          _chunk.xhr = chunk.xhr
+        }
+        _chunk.tested = true
+      }, this)
+      this._firstResponse = true
     }
   },
 
