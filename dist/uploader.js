@@ -435,7 +435,8 @@ Uploader.defaults = {
   successStatuses: [200, 201, 202],
   onDropStopPropagation: false,
   initFileFn: null,
-  readFileFn: webAPIFileRead
+  readFileFn: webAPIFileRead,
+  checkChunkUploadedByResponse: null
 }
 
 Uploader.utils = utils
@@ -546,16 +547,22 @@ utils.extend(Uploader.prototype, {
   uploadNextChunk: function (preventEvents) {
     var found = false
     var pendingStatus = Chunk.STATUS.PENDING
+    var checkChunkUploaded = this.uploader.opts.checkChunkUploadedByResponse
     if (this.opts.prioritizeFirstAndLastChunk) {
       utils.each(this.files, function (file) {
-        if (!file.paused && file.chunks.length &&
-          file.chunks[0].status() === pendingStatus) {
+        if (file.paused) {
+          return
+        }
+        if (checkChunkUploaded && !file._firstResponse && file.isUploading()) {
+          // waiting for current file's first chunk response
+          return
+        }
+        if (file.chunks.length && file.chunks[0].status() === pendingStatus) {
           file.chunks[0].send()
           found = true
           return false
         }
-        if (!file.paused && file.chunks.length > 1 &&
-          file.chunks[file.chunks.length - 1].status() === pendingStatus) {
+        if (file.chunks.length > 1 && file.chunks[file.chunks.length - 1].status() === pendingStatus) {
           file.chunks[file.chunks.length - 1].send()
           found = true
           return false
@@ -569,6 +576,10 @@ utils.extend(Uploader.prototype, {
     // Now, simply look for the next, best thing to upload
     utils.each(this.files, function (file) {
       if (!file.paused) {
+        if (checkChunkUploaded && !file._firstResponse && file.isUploading()) {
+          // waiting for current file's first chunk response
+          return
+        }
         utils.each(file.chunks, function (chunk) {
           if (chunk.status() === pendingStatus) {
             chunk.send()
@@ -636,6 +647,7 @@ utils.extend(Uploader.prototype, {
           }
         }
       })
+      return should
     })
     // if should is true then return uploading chunks's length
     return should && num
@@ -991,6 +1003,7 @@ utils.extend(File.prototype, {
         if (this.error) {
           return
         }
+        this._updateUploadedChunks(message, chunk)
         clearTimeout(this._progeressId)
         this._progeressId = 0
         var timeDiff = Date.now() - this._lastProgressCallback
@@ -1013,6 +1026,19 @@ utils.extend(File.prototype, {
       case STATUS.RETRY:
         uploader._trigger('fileRetry', rootFile, this, chunk)
         break
+    }
+  },
+
+  _updateUploadedChunks: function (message, chunk) {
+    var checkChunkUploaded = this.uploader.opts.checkChunkUploadedByResponse
+    if (checkChunkUploaded) {
+      utils.each(this.chunks, function (_chunk) {
+        if (checkChunkUploaded.call(this, _chunk, message)) {
+          _chunk.xhr = chunk.xhr
+        }
+        _chunk.tested = true
+      }, this)
+      this._firstResponse = true
     }
   },
 
