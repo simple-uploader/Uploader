@@ -1,6 +1,6 @@
 /*!
  * Uploader - Uploader library implements html5 file upload and provides multiple simultaneous, stable, fault tolerant and resumable uploads
- * @version v0.1.1
+ * @version v0.2.0
  * @author dolymood <dolymood@gmail.com>
  * @link https://github.com/simple-uploader/Uploader
  * @license MIT
@@ -94,7 +94,6 @@ utils.extend(Chunk.prototype, {
       } else if (status === STATUS.SUCCESS) {
         $.tested = true
         $._event(status, $.message())
-        $.uploader.uploadNextChunk()
       } else if (!$.file.paused) {
         // Error might be caused by file pause method
         // Chunks does not exist on the server side
@@ -172,7 +171,7 @@ utils.extend(Chunk.prototype, {
       if (status === STATUS.SUCCESS || status === STATUS.ERROR) {
         delete this.data
         $._event(status, $.message())
-        $.uploader.uploadNextChunk()
+        status === STATUS.ERROR && $.uploader.uploadNextChunk()
       } else {
         $._event(STATUS.RETRY, $.message())
         $.pendingRetry = true
@@ -352,7 +351,7 @@ var event = _dereq_('./event')
 var File = _dereq_('./file')
 var Chunk = _dereq_('./chunk')
 
-var version = '0.1.1'
+var version = '0.2.0'
 
 // ie10+
 var ie10plus = window.navigator.msPointerEnabled
@@ -611,18 +610,18 @@ utils.extend(Uploader.prototype, {
     return false
   },
 
-  upload: function () {
+  upload: function (preventEvents) {
     // Make sure we don't start too many uploads at once
     var ret = this._shouldUploadNext()
     if (ret === false) {
       return
     }
-    this._trigger('uploadStart')
+    !preventEvents && this._trigger('uploadStart')
     var started = false
     for (var num = 1; num <= this.opts.simultaneousUploads - ret; num++) {
-      started = this.uploadNextChunk(true) || started
+      started = this.uploadNextChunk(!preventEvents) || started
     }
-    if (!started) {
+    if (!started && !preventEvents) {
       this._triggerAsync('complete')
     }
   },
@@ -1000,10 +999,10 @@ utils.extend(File.prototype, {
         uploader._trigger('fileError', rootFile, this, message, chunk)
         break
       case STATUS.SUCCESS:
+        this._updateUploadedChunks(message, chunk)
         if (this.error) {
           return
         }
-        this._updateUploadedChunks(message, chunk)
         clearTimeout(this._progeressId)
         this._progeressId = 0
         var timeDiff = Date.now() - this._lastProgressCallback
@@ -1033,12 +1032,19 @@ utils.extend(File.prototype, {
     var checkChunkUploaded = this.uploader.opts.checkChunkUploadedByResponse
     if (checkChunkUploaded) {
       utils.each(this.chunks, function (_chunk) {
-        if (checkChunkUploaded.call(this, _chunk, message)) {
+        if (!_chunk.tested && checkChunkUploaded.call(this, _chunk, message)) {
           _chunk.xhr = chunk.xhr
         }
         _chunk.tested = true
       }, this)
-      this._firstResponse = true
+      if (!this._firstResponse) {
+        this._firstResponse = true
+        this.uploader.upload(true)
+      } else {
+        this.uploader.uploadNextChunk()
+      }
+    } else {
+      this.uploader.uploadNextChunk()
     }
   },
 
