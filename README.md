@@ -143,6 +143,7 @@ function, it will be passed a Uploader.File, a Uploader.Chunk and isTest boolean
 * `preprocess` Optional function to process each chunk before testing & sending. To the function it will be passed the chunk as parameter, and should call the `preprocessFinished` method on the chunk when finished. (Default: `null`)
 * `initFileFn` Optional function to initialize the fileObject. To the function it will be passed a Uploader.File arguments.
 * `readFileFn` Optional function wrapping reading operation from the original file. To the function it will be passed the Uploader.File, the startByte and endByte, the fileType and the Uploader.Chunk.
+* `checkChunkUploadedByResponse` Optional function to check chunk was uploaded by XHR response. To the function it will be passed the Uploader.Chunk and the response message. You do not need to upload(test) all chunks now, see [Issue #1](https://github.com/simple-uploader/Uploader/issues/1) for details and reasons, [sample](https://github.com/simple-uploader/Uploader/blob/develop/samples/Node.js/public/app.js#L15).
 * `generateUniqueIdentifier` Override the function that generates unique identifiers for each file. (Default: `null`)
 * `maxChunkRetries` The maximum number of retries for a chunk before the upload is failed. Valid values are any positive integer and `undefined` for no limit. (Default: `0`)
 * `chunkRetryInterval` The number of milliseconds to wait before retrying a chunk on a non-permanent error.  Valid values are any positive integer and `undefined` for immediate retry. (Default: `undefined`)

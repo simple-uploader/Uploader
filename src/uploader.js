@@ -262,18 +262,18 @@ utils.extend(Uploader.prototype, {
     return false
   },
 
-  upload: function () {
+  upload: function (preventEvents) {
     // Make sure we don't start too many uploads at once
     var ret = this._shouldUploadNext()
     if (ret === false) {
       return
     }
-    this._trigger('uploadStart')
+    !preventEvents && this._trigger('uploadStart')
     var started = false
     for (var num = 1; num <= this.opts.simultaneousUploads - ret; num++) {
-      started = this.uploadNextChunk(true) || started
+      started = this.uploadNextChunk(!preventEvents) || started
     }
-    if (!started) {
+    if (!started && !preventEvents) {
       this._triggerAsync('complete')
     }
   },

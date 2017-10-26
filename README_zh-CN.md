@@ -140,6 +140,7 @@ var r = new Uploader({ opt1: 'val', ...})
 * `preprocess` 可选的函数，每个块在测试以及上传前会被调用，参数就是当前上传块实例 `Uploader.Chunk`，注意在这个函数中你需要调用当前上传块实例的 `preprocessFinished` 方法，默认 `null`。
 * `initFileFn` 可选函数用于初始化文件对象，传入的参数就是 `Uploader.File` 实例。
 * `readFileFn` 可选的函数用于原始文件的读取操作，传入的参数就是 `Uploader.File` 实例、文件类型、开始字节位置 startByte，结束字节位置 endByte、以及当前块 `Uploader.Chunk` 实例。
+* `checkChunkUploadedByResponse` 可选的函数用于根据 XHR 响应内容检测每个块是否上传成功了，传入的参数是：`Uploader.Chunk` 实例以及请求响应信息。这样就没必要上传（测试）所有的块了，具体细节原因参考 [Issue #1](https://github.com/simple-uploader/Uploader/issues/1)，[使用示例](https://github.com/simple-uploader/Uploader/blob/develop/samples/Node.js/public/app.js#L15).
 * `generateUniqueIdentifier` 可覆盖默认的生成文件唯一标示的函数，默认 `null`。
 * `maxChunkRetries` 最大自动失败重试上传次数，值可以是任意正整数，如果是 `undefined` 则代表无限次，默认 `0`。
 * `chunkRetryInterval` 重试间隔，值可以是任意正整数，如果是 `null` 则代表立即重试，默认 `null`。

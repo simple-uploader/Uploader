@@ -171,10 +171,10 @@ utils.extend(File.prototype, {
         uploader._trigger('fileError', rootFile, this, message, chunk)
         break
       case STATUS.SUCCESS:
+        this._updateUploadedChunks(message, chunk)
         if (this.error) {
           return
         }
-        this._updateUploadedChunks(message, chunk)
         clearTimeout(this._progeressId)
         this._progeressId = 0
         var timeDiff = Date.now() - this._lastProgressCallback
@@ -204,12 +204,19 @@ utils.extend(File.prototype, {
     var checkChunkUploaded = this.uploader.opts.checkChunkUploadedByResponse
     if (checkChunkUploaded) {
       utils.each(this.chunks, function (_chunk) {
-        if (checkChunkUploaded.call(this, _chunk, message)) {
+        if (!_chunk.tested && checkChunkUploaded.call(this, _chunk, message)) {
           _chunk.xhr = chunk.xhr
         }
         _chunk.tested = true
       }, this)
-      this._firstResponse = true
+      if (!this._firstResponse) {
+        this._firstResponse = true
+        this.uploader.upload(true)
+      } else {
+        this.uploader.uploadNextChunk()
+      }
+    } else {
+      this.uploader.uploadNextChunk()
     }
   },
 

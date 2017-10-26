@@ -588,4 +588,39 @@ describe('upload file', function () {
 
     expect(requests.length).toBe(6)
   })
+
+  it('should skip upload chunks by response - checkChunkUploadedByResponse', function () {
+    uploader.opts.testChunks = true
+    uploader.opts.chunkSize = 1
+    uploader.opts.simultaneousUploads = 3
+    uploader.opts.checkChunkUploadedByResponse = function(chunk, message) {
+      var objMessage = {}
+      try {
+        objMessage = JSON.parse(message)
+      } catch (e) {}
+      return objMessage.uploaded_chunks.indexOf(chunk.offset + 1) >= 0
+    }
+
+    uploader.addFile(new File(['0123456789'], 'ldlldl'))
+
+    uploader.upload()
+
+    expect(requests.length).toBe(1)
+    expect(requests[0].method).toBe('GET')
+    requests[0].respond(200, [], '{"uploaded_chunks": [1, 2, 4, 5, 9]}')
+
+    expect(requests.length).toBe(1 + 3)
+    expect(requests[1].method).toBe('POST')
+    expect(requests[3].method).toBe('POST')
+    for (var i = 1; i < requests.length; i++) {
+      requests[i].respond(200)
+    }
+    expect(requests.length).toBe(6)
+    requests[4].respond(200)
+    requests[5].respond(200)
+    var file = uploader.files[0]
+    expect(file.progress()).toBe(1)
+    expect(file.isUploading()).toBe(false)
+    expect(file.isComplete()).toBe(true)
+  })
 })
