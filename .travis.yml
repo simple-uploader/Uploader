@@ -1,5 +1,5 @@
 language: node_js
-sudo: false
+sudo: required
 dist: trusty
 addons:
   chrome: stable
@@ -20,4 +20,7 @@ matrix:
         sauce_connect: true
   allow_failures:
     - env: TESTNAME="browser-tests"
+before_script:
+    - "sudo chown root /opt/google/chrome/chrome-sandbox"
+    - "sudo chmod 4755 /opt/google/chrome/chrome-sandbox"
 script: ./test.sh
