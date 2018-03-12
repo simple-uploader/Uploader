@@ -84,8 +84,8 @@ utils.extend(Chunk.prototype, {
         $._event(status, $.message())
         $.uploader.uploadNextChunk()
       } else if (status === STATUS.SUCCESS) {
-        $.tested = true
         $._event(status, $.message())
+        $.tested = true
       } else if (!$.file.paused) {
         // Error might be caused by file pause method
         // Chunks does not exist on the server side
