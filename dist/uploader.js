@@ -1,6 +1,6 @@
 /*!
  * Uploader - Uploader library implements html5 file upload and provides multiple simultaneous, stable, fault tolerant and resumable uploads
- * @version v0.2.0
+ * @version v0.2.1
  * @author dolymood <dolymood@gmail.com>
  * @link https://github.com/simple-uploader/Uploader
  * @license MIT
@@ -92,8 +92,8 @@ utils.extend(Chunk.prototype, {
         $._event(status, $.message())
         $.uploader.uploadNextChunk()
       } else if (status === STATUS.SUCCESS) {
-        $.tested = true
         $._event(status, $.message())
+        $.tested = true
       } else if (!$.file.paused) {
         // Error might be caused by file pause method
         // Chunks does not exist on the server side
@@ -351,7 +351,7 @@ var event = _dereq_('./event')
 var File = _dereq_('./file')
 var Chunk = _dereq_('./chunk')
 
-var version = '0.2.0'
+var version = '0.2.1'
 
 // ie10+
 var ie10plus = window.navigator.msPointerEnabled
