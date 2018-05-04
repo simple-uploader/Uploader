@@ -259,7 +259,7 @@ utils.extend(Uploader.prototype, {
       // All chunks have been uploaded, complete
       this._triggerAsync('complete')
     }
-    return false
+    return outstanding
   },
 
   upload: function (preventEvents) {
@@ -272,6 +272,10 @@ utils.extend(Uploader.prototype, {
     var started = false
     for (var num = 1; num <= this.opts.simultaneousUploads - ret; num++) {
       started = this.uploadNextChunk(!preventEvents) || started
+      if (!started && preventEvents) {
+        // completed
+        break
+      }
     }
     if (!started && !preventEvents) {
       this._triggerAsync('complete')
