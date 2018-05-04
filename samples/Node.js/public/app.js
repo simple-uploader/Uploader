@@ -67,7 +67,7 @@
     });
   });
   r.on('filesSubmitted', function (files, fileList) {
-    r.upload();
+    window.r.upload();
   });
   r.on('complete', function () {
     // Hide pause/resume when the upload has completed
