@@ -1,6 +1,6 @@
 /*!
  * Uploader - Uploader library implements html5 file upload and provides multiple simultaneous, stable, fault tolerant and resumable uploads
- * @version v0.2.1
+ * @version v0.2.2
  * @author dolymood <dolymood@gmail.com>
  * @link https://github.com/simple-uploader/Uploader
  * @license MIT
@@ -351,7 +351,7 @@ var event = _dereq_('./event')
 var File = _dereq_('./file')
 var Chunk = _dereq_('./chunk')
 
-var version = '0.2.1'
+var version = '0.2.2'
 
 // ie10+
 var ie10plus = window.navigator.msPointerEnabled
@@ -607,7 +607,7 @@ utils.extend(Uploader.prototype, {
       // All chunks have been uploaded, complete
       this._triggerAsync('complete')
     }
-    return false
+    return outstanding
   },
 
   upload: function (preventEvents) {
@@ -620,6 +620,10 @@ utils.extend(Uploader.prototype, {
     var started = false
     for (var num = 1; num <= this.opts.simultaneousUploads - ret; num++) {
       started = this.uploadNextChunk(!preventEvents) || started
+      if (!started && preventEvents) {
+        // completed
+        break
+      }
     }
     if (!started && !preventEvents) {
       this._triggerAsync('complete')
