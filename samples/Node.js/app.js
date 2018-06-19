@@ -19,6 +19,7 @@ app.post('/upload', multipartMiddleware, function(req, res) {
     console.log('POST', status, original_filename, identifier);
     if (ACCESS_CONTROLL_ALLOW_ORIGIN) {
       res.header("Access-Control-Allow-Origin", "*");
+      res.header("Access-Control-Allow-Headers", "content-type")
     }
     setTimeout(function () {
       res.send(status);
@@ -31,6 +32,7 @@ app.options('/upload', function(req, res){
   console.log('OPTIONS');
   if (ACCESS_CONTROLL_ALLOW_ORIGIN) {
     res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "content-type")
   }
   res.status(200).send();
 });

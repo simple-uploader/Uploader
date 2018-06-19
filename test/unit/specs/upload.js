@@ -623,4 +623,20 @@ describe('upload file', function () {
     expect(file.isUploading()).toBe(false)
     expect(file.isComplete()).toBe(true)
   })
+
+  it('should resume one file when initialPaused is true', function () {
+    uploader.opts.initialPaused = true
+    uploader.addFile(new File(['IIIIIIIIII'], 'file2'))
+    uploader.addFile(new File(['IIIIIIIIII'], 'file3'))
+
+    uploader.upload()
+
+    expect(uploader.isUploading()).toBe(false)
+    expect(uploader.files[0].paused).toBe(true)
+    expect(uploader.files[1].paused).toBe(true)
+    uploader.files[0].resume()
+    expect(uploader.isUploading()).toBe(true)
+    expect(uploader.files[0].paused).toBe(false)
+    expect(uploader.files[1].paused).toBe(true)
+  })
 })
