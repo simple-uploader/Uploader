@@ -34,7 +34,7 @@ function File (uploader, file, parent) {
     }
   }
 
-  this.paused = false
+  this.paused = uploader.opts.initialPaused
   this.error = false
   this.allError = false
   this.aborted = false

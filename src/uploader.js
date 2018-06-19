@@ -95,7 +95,8 @@ Uploader.defaults = {
   onDropStopPropagation: false,
   initFileFn: null,
   readFileFn: webAPIFileRead,
-  checkChunkUploadedByResponse: null
+  checkChunkUploadedByResponse: null,
+  initialPaused: false
 }
 
 Uploader.utils = utils
