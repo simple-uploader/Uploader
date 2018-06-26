@@ -159,31 +159,45 @@ utils.extend(Chunk.prototype, {
     }
 
     function doneHandler (event) {
-      var status = $.status()
-      if (status === STATUS.SUCCESS || status === STATUS.ERROR) {
-        delete this.data
-        $._event(status, $.message())
-        status === STATUS.ERROR && $.uploader.uploadNextChunk()
-      } else {
-        $._event(STATUS.RETRY, $.message())
-        $.pendingRetry = true
-        $.abort()
-        $.retries++
-        var retryInterval = $.uploader.opts.chunkRetryInterval
-        if (retryInterval !== null) {
-          setTimeout(function () {
-            $.send()
-          }, retryInterval)
-        } else {
-          $.send()
+      var msg = $.message()
+      $.processingResponse = true
+      $.uploader.opts.processResponse(msg, function (err, res) {
+        $.processingResponse = false
+        if (!$.xhr) {
+          return
         }
-      }
+        $.processedState = {
+          err: err,
+          res: res
+        }
+        var status = $.status()
+        if (status === STATUS.SUCCESS || status === STATUS.ERROR) {
+          delete this.data
+          $._event(status, res)
+          status === STATUS.ERROR && $.uploader.uploadNextChunk()
+        } else {
+          $._event(STATUS.RETRY, res)
+          $.pendingRetry = true
+          $.abort()
+          $.retries++
+          var retryInterval = $.uploader.opts.chunkRetryInterval
+          if (retryInterval !== null) {
+            setTimeout(function () {
+              $.send()
+            }, retryInterval)
+          } else {
+            $.send()
+          }
+        }
+      })
     }
   },
 
   abort: function () {
     var xhr = this.xhr
     this.xhr = null
+    this.processingResponse = false
+    this.processedState = null
     if (xhr) {
       xhr.abort()
     }
@@ -198,25 +212,31 @@ utils.extend(Chunk.prototype, {
       return STATUS.UPLOADING
     } else if (!this.xhr) {
       return STATUS.PENDING
-    } else if (this.xhr.readyState < 4) {
+    } else if (this.xhr.readyState < 4 || this.processingResponse) {
       // Status is really 'OPENED', 'HEADERS_RECEIVED'
       // or 'LOADING' - meaning that stuff is happening
       return STATUS.UPLOADING
     } else {
+      var _status
       if (this.uploader.opts.successStatuses.indexOf(this.xhr.status) > -1) {
         // HTTP 200, perfect
         // HTTP 202 Accepted - The request has been accepted for processing, but the processing has not been completed.
-        return STATUS.SUCCESS
+        _status = STATUS.SUCCESS
       } else if (this.uploader.opts.permanentErrors.indexOf(this.xhr.status) > -1 ||
           !isTest && this.retries >= this.uploader.opts.maxChunkRetries) {
         // HTTP 415/500/501, permanent error
-        return STATUS.ERROR
+        _status = STATUS.ERROR
       } else {
         // this should never happen, but we'll reset and queue a retry
         // a likely case for this would be 503 service unavailable
         this.abort()
-        return STATUS.PENDING
+        _status = STATUS.PENDING
       }
+      var processedState = this.processedState
+      if (processedState && processedState.err) {
+        _status = STATUS.ERROR
+      }
+      return _status
     }
   },
 

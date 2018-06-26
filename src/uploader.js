@@ -96,7 +96,10 @@ Uploader.defaults = {
   initFileFn: null,
   readFileFn: webAPIFileRead,
   checkChunkUploadedByResponse: null,
-  initialPaused: false
+  initialPaused: false,
+  processResponse: function (response, cb) {
+    cb(null, response)
+  }
 }
 
 Uploader.utils = utils
