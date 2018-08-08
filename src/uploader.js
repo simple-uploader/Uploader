@@ -53,6 +53,8 @@ function Uploader (opts) {
   utils.defineNonEnumerable(this, 'filePaths', {})
   this.opts = utils.extend({}, Uploader.defaults, opts || {})
 
+  this.preventEvent = utils.bind(this._preventEvent, this)
+
   File.call(this, this)
 }
 
@@ -372,6 +374,7 @@ utils.extend(Uploader.prototype, {
       // When new files are added, simply append them to the overall list
       var that = this
       input.addEventListener('change', function (e) {
+        that._trigger(e.type, e)
         if (e.target.value) {
           that.addFiles(e.target.files, e)
           e.target.value = ''
@@ -381,6 +384,7 @@ utils.extend(Uploader.prototype, {
   },
 
   onDrop: function (evt) {
+    this._trigger(evt.type, evt)
     if (this.opts.onDropStopPropagation) {
       evt.stopPropagation()
     }
@@ -462,6 +466,11 @@ utils.extend(Uploader.prototype, {
     }, this)
   },
 
+  _preventEvent: function (e) {
+    utils.preventEvent(e)
+    this._trigger(e.type, e)
+  },
+
   /**
    * Assign one or more DOM nodes as a drop target.
    * @function
@@ -470,8 +479,9 @@ utils.extend(Uploader.prototype, {
   assignDrop: function (domNodes) {
     this._onDrop = utils.bind(this.onDrop, this)
     this._assignHelper(domNodes, {
-      dragover: utils.preventEvent,
-      dragenter: utils.preventEvent,
+      dragover: this.preventEvent,
+      dragenter: this.preventEvent,
+      dragleave: this.preventEvent,
       drop: this._onDrop
     })
   },
@@ -483,8 +493,9 @@ utils.extend(Uploader.prototype, {
    */
   unAssignDrop: function (domNodes) {
     this._assignHelper(domNodes, {
-      dragover: utils.preventEvent,
-      dragenter: utils.preventEvent,
+      dragover: this.preventEvent,
+      dragenter: this.preventEvent,
+      dragleave: this.preventEvent,
       drop: this._onDrop
     }, true)
     this._onDrop = null
