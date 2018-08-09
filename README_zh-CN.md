@@ -190,6 +190,10 @@ var r = new Uploader({ opt1: 'val', ...})
 
 #### 事件
 
+* `.change(event)` input 的 change 事件。
+* `.dragover(event)` 拖拽区域的 dragover 事件。
+* `.dragenter(event)` 拖拽区域的 dragenter 事件。
+* `.dragleave(event)` 拖拽区域的 dragleave 事件。
 * `.fileSuccess(rootFile, file, message, chunk)` 一个文件上传成功事件，第一个参数 `rootFile` 就是成功上传的文件所属的根 `Uploader.File` 对象，它应该包含或者等于成功上传文件；第二个参数 `file` 就是当前成功的 `Uploader.File` 对象本身；第三个参数就是 `message` 就是服务端响应内容，永远都是字符串；第四个参数 `chunk` 就是 `Uploader.Chunk` 实例，它就是该文件的最后一个块实例，如果你想得到请求响应码的话，`chunk.xhr.status` 就是。
 * `.fileComplete(rootFile)` 一个根文件（文件夹）成功上传完成。
 * `.fileProgress(rootFile, file, chunk)` 一个文件在上传中。

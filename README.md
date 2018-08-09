@@ -199,6 +199,10 @@ parameter must be adjusted together with `progressCallbacksInterval` parameter. 
 
 #### Events
 
+* `.change(event)` File input change event.
+* `.dragover(event)` Drop area dragover event.
+* `.dragenter(event)` Drop area dragenter event.
+* `.dragleave(event)` Drop area dragleave event.
 * `.fileSuccess(rootFile, file, message, chunk)` A specific file was completed. First argument `rootFile` is the root `Uploader.File` instance which contains or equal the completed file, second argument `file` argument is instance of `Uploader.File` too, it's the current completed file object, third argument `message` contains server response. Response is always a string. 
 Fourth argument `chunk` is instance of `Uploader.Chunk`. You can get response status by accessing xhr 
 object `chunk.xhr.status`.
