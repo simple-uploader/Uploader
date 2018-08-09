@@ -151,6 +151,8 @@ var r = new Uploader({ opt1: 'val', ...})
 * `successStatuses` 认为响应式成功的响应码，默认 `[200, 201, 
 202]`。
 * `permanentErrors` 认为是出错的响应码，默认 `[404, 415, 500, 501]`。
+* `initialPaused` 初始文件 paused 状态，默认 `false`。
+* `processResponse` 处理请求结果，默认 `function (response, cb) { cb(null, response) }`.
 
 #### 属性
 

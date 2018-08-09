@@ -158,6 +158,8 @@ parameter must be adjusted together with `progressCallbacksInterval` parameter. 
 * `successStatuses` Response is success if response status is in this list (Default: `[200,201,
 202]`)
 * `permanentErrors` Response fails if response status is in this list (Default: `[404, 415, 500, 501]`)
+* `initialPaused` Initial paused state, default `false`.
+* `processResponse` Process xhr response, default `function (response, cb) { cb(null, response) }`.
 
 #### Properties
 
