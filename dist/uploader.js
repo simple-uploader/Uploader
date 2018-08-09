@@ -1,6 +1,6 @@
 /*!
  * Uploader - Uploader library implements html5 file upload and provides multiple simultaneous, stable, fault tolerant and resumable uploads
- * @version v0.2.2
+ * @version v0.3.0
  * @author dolymood <dolymood@gmail.com>
  * @link https://github.com/simple-uploader/Uploader
  * @license MIT
@@ -167,31 +167,45 @@ utils.extend(Chunk.prototype, {
     }
 
     function doneHandler (event) {
-      var status = $.status()
-      if (status === STATUS.SUCCESS || status === STATUS.ERROR) {
-        delete this.data
-        $._event(status, $.message())
-        status === STATUS.ERROR && $.uploader.uploadNextChunk()
-      } else {
-        $._event(STATUS.RETRY, $.message())
-        $.pendingRetry = true
-        $.abort()
-        $.retries++
-        var retryInterval = $.uploader.opts.chunkRetryInterval
-        if (retryInterval !== null) {
-          setTimeout(function () {
-            $.send()
-          }, retryInterval)
-        } else {
-          $.send()
+      var msg = $.message()
+      $.processingResponse = true
+      $.uploader.opts.processResponse(msg, function (err, res) {
+        $.processingResponse = false
+        if (!$.xhr) {
+          return
         }
-      }
+        $.processedState = {
+          err: err,
+          res: res
+        }
+        var status = $.status()
+        if (status === STATUS.SUCCESS || status === STATUS.ERROR) {
+          delete this.data
+          $._event(status, res)
+          status === STATUS.ERROR && $.uploader.uploadNextChunk()
+        } else {
+          $._event(STATUS.RETRY, res)
+          $.pendingRetry = true
+          $.abort()
+          $.retries++
+          var retryInterval = $.uploader.opts.chunkRetryInterval
+          if (retryInterval !== null) {
+            setTimeout(function () {
+              $.send()
+            }, retryInterval)
+          } else {
+            $.send()
+          }
+        }
+      })
     }
   },
 
   abort: function () {
     var xhr = this.xhr
     this.xhr = null
+    this.processingResponse = false
+    this.processedState = null
     if (xhr) {
       xhr.abort()
     }
@@ -206,25 +220,31 @@ utils.extend(Chunk.prototype, {
       return STATUS.UPLOADING
     } else if (!this.xhr) {
       return STATUS.PENDING
-    } else if (this.xhr.readyState < 4) {
+    } else if (this.xhr.readyState < 4 || this.processingResponse) {
       // Status is really 'OPENED', 'HEADERS_RECEIVED'
       // or 'LOADING' - meaning that stuff is happening
       return STATUS.UPLOADING
     } else {
+      var _status
       if (this.uploader.opts.successStatuses.indexOf(this.xhr.status) > -1) {
         // HTTP 200, perfect
         // HTTP 202 Accepted - The request has been accepted for processing, but the processing has not been completed.
-        return STATUS.SUCCESS
+        _status = STATUS.SUCCESS
       } else if (this.uploader.opts.permanentErrors.indexOf(this.xhr.status) > -1 ||
           !isTest && this.retries >= this.uploader.opts.maxChunkRetries) {
         // HTTP 415/500/501, permanent error
-        return STATUS.ERROR
+        _status = STATUS.ERROR
       } else {
         // this should never happen, but we'll reset and queue a retry
         // a likely case for this would be 503 service unavailable
         this.abort()
-        return STATUS.PENDING
+        _status = STATUS.PENDING
       }
+      var processedState = this.processedState
+      if (processedState && processedState.err) {
+        _status = STATUS.ERROR
+      }
+      return _status
     }
   },
 
@@ -351,11 +371,16 @@ var event = _dereq_('./event')
 var File = _dereq_('./file')
 var Chunk = _dereq_('./chunk')
 
-var version = '0.2.2'
+var version = '0.3.0'
+
+var isServer = typeof window === 'undefined'
 
 // ie10+
-var ie10plus = window.navigator.msPointerEnabled
+var ie10plus = isServer ? false : window.navigator.msPointerEnabled
 var support = (function () {
+  if (isServer) {
+    return false
+  }
   var sliceName = 'slice'
   var _support = utils.isDefined(window.File) && utils.isDefined(window.Blob) &&
                 utils.isDefined(window.FileList)
@@ -376,6 +401,9 @@ var support = (function () {
 })()
 
 var supportDirectory = (function () {
+  if (isServer) {
+    return false
+  }
   var input = window.document.createElement('input')
   input.type = 'file'
   var sd = 'webkitdirectory' in input || 'directory' in input
@@ -392,6 +420,8 @@ function Uploader (opts) {
   this.supportDirectory = supportDirectory
   utils.defineNonEnumerable(this, 'filePaths', {})
   this.opts = utils.extend({}, Uploader.defaults, opts || {})
+
+  this.preventEvent = utils.bind(this._preventEvent, this)
 
   File.call(this, this)
 }
@@ -435,7 +465,11 @@ Uploader.defaults = {
   onDropStopPropagation: false,
   initFileFn: null,
   readFileFn: webAPIFileRead,
-  checkChunkUploadedByResponse: null
+  checkChunkUploadedByResponse: null,
+  initialPaused: false,
+  processResponse: function (response, cb) {
+    cb(null, response)
+  }
 }
 
 Uploader.utils = utils
@@ -708,6 +742,7 @@ utils.extend(Uploader.prototype, {
       // When new files are added, simply append them to the overall list
       var that = this
       input.addEventListener('change', function (e) {
+        that._trigger(e.type, e)
         if (e.target.value) {
           that.addFiles(e.target.files, e)
           e.target.value = ''
@@ -717,6 +752,7 @@ utils.extend(Uploader.prototype, {
   },
 
   onDrop: function (evt) {
+    this._trigger(evt.type, evt)
     if (this.opts.onDropStopPropagation) {
       evt.stopPropagation()
     }
@@ -798,6 +834,11 @@ utils.extend(Uploader.prototype, {
     }, this)
   },
 
+  _preventEvent: function (e) {
+    utils.preventEvent(e)
+    this._trigger(e.type, e)
+  },
+
   /**
    * Assign one or more DOM nodes as a drop target.
    * @function
@@ -806,8 +847,9 @@ utils.extend(Uploader.prototype, {
   assignDrop: function (domNodes) {
     this._onDrop = utils.bind(this.onDrop, this)
     this._assignHelper(domNodes, {
-      dragover: utils.preventEvent,
-      dragenter: utils.preventEvent,
+      dragover: this.preventEvent,
+      dragenter: this.preventEvent,
+      dragleave: this.preventEvent,
       drop: this._onDrop
     })
   },
@@ -819,8 +861,9 @@ utils.extend(Uploader.prototype, {
    */
   unAssignDrop: function (domNodes) {
     this._assignHelper(domNodes, {
-      dragover: utils.preventEvent,
-      dragenter: utils.preventEvent,
+      dragover: this.preventEvent,
+      dragenter: this.preventEvent,
+      dragleave: this.preventEvent,
       drop: this._onDrop
     }, true)
     this._onDrop = null
@@ -866,7 +909,7 @@ function File (uploader, file, parent) {
     }
   }
 
-  this.paused = false
+  this.paused = uploader.opts.initialPaused
   this.error = false
   this.allError = false
   this.aborted = false
