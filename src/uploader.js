@@ -358,7 +358,7 @@ utils.extend(Uploader.prototype, {
         // event listener is executed two times
         // first one - original mouse click event
         // second - input.click(), input is inside domNode
-        domNode.addEventListener('click', function () {
+        domNode.addEventListener('click', function (e) {
           if (e.target.tagName !== 'INPUT') return
           input.click()
         }, false)
