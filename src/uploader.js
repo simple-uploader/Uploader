@@ -359,7 +359,10 @@ utils.extend(Uploader.prototype, {
         // first one - original mouse click event
         // second - input.click(), input is inside domNode
         domNode.addEventListener('click', function (e) {
-          if (e.target.tagName !== 'INPUT') return
+          var target = e.target
+          if (target.type === 'file' && target.tagName.toLowerCase() === 'input') {
+            return
+          }
           input.click()
         }, false)
       }
