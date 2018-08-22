@@ -1,6 +1,6 @@
 /*!
  * Uploader - Uploader library implements html5 file upload and provides multiple simultaneous, stable, fault tolerant and resumable uploads
- * @version v0.3.0
+ * @version v0.3.1
  * @author dolymood <dolymood@gmail.com>
  * @link https://github.com/simple-uploader/Uploader
  * @license MIT
@@ -371,7 +371,7 @@ var event = _dereq_('./event')
 var File = _dereq_('./file')
 var Chunk = _dereq_('./chunk')
 
-var version = '0.3.0'
+var version = '0.3.1'
 
 var isServer = typeof window === 'undefined'
 
@@ -726,7 +726,11 @@ utils.extend(Uploader.prototype, {
         // event listener is executed two times
         // first one - original mouse click event
         // second - input.click(), input is inside domNode
-        domNode.addEventListener('click', function () {
+        domNode.addEventListener('click', function (e) {
+          var target = e.target
+          if (target.type === 'file' && target.tagName.toLowerCase() === 'input') {
+            return
+          }
           input.click()
         }, false)
       }
