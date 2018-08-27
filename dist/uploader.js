@@ -1,6 +1,6 @@
 /*!
  * Uploader - Uploader library implements html5 file upload and provides multiple simultaneous, stable, fault tolerant and resumable uploads
- * @version v0.3.2
+ * @version v0.4.0
  * @author dolymood <dolymood@gmail.com>
  * @link https://github.com/simple-uploader/Uploader
  * @license MIT
@@ -69,6 +69,9 @@ utils.extend(Chunk.prototype, {
   },
 
   getTarget: function (target, params) {
+    if (!params.length) {
+      return target
+    }
     if (target.indexOf('?') < 0) {
       target += '?'
     } else {
@@ -280,6 +283,9 @@ utils.extend(Chunk.prototype, {
     var query = utils.evalOpts(this.uploader.opts.query, this.file, this, isTest)
     query = utils.extend(this.getParams(), query)
 
+    // processParams
+    query = this.uploader.opts.processParams(query)
+
     var target = utils.evalOpts(this.uploader.opts.target, this.file, this, isTest)
     var data = null
     if (method === 'GET' || paramsMethod === 'octet') {
@@ -371,7 +377,7 @@ var event = _dereq_('./event')
 var File = _dereq_('./file')
 var Chunk = _dereq_('./chunk')
 
-var version = '0.3.2'
+var version = '0.4.0'
 
 var isServer = typeof window === 'undefined'
 
@@ -469,6 +475,9 @@ Uploader.defaults = {
   initialPaused: false,
   processResponse: function (response, cb) {
     cb(null, response)
+  },
+  processParams: function (params) {
+    return params
   }
 }
 
