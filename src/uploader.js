@@ -101,6 +101,9 @@ Uploader.defaults = {
   initialPaused: false,
   processResponse: function (response, cb) {
     cb(null, response)
+  },
+  processParams: function (params) {
+    return params
   }
 }
 
