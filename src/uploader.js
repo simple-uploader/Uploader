@@ -272,7 +272,10 @@ utils.extend(Uploader.prototype, {
         return false
       }
     })
-    if (!outstanding && !preventEvents) {
+    // should have files now
+    // if now files in list
+    // should not trigger complete event
+    if (!outstanding && !preventEvents && this.files.length) {
       // All chunks have been uploaded, complete
       this._triggerAsync('complete')
     }
