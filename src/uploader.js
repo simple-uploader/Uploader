@@ -272,7 +272,7 @@ utils.extend(Uploader.prototype, {
         return false
       }
     })
-    // should have files now
+    // should check files now
     // if now files in list
     // should not trigger complete event
     if (!outstanding && !preventEvents && this.files.length) {
