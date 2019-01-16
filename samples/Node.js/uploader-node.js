@@ -102,35 +102,37 @@ module.exports = flow = function(temporaryFolder) {
       callback('invalid_uploader_request', null, null, null);
       return;
     }
-
+    
     var original_filename = files[$.fileParameterName]['originalFilename'];
     var validation = validateRequest(chunkNumber, chunkSize, totalSize, identifier, filename, files[$.fileParameterName].size);
     if (validation == 'valid') {
       var chunkFilename = getChunkFilename(chunkNumber, identifier);
-
-      // Save the chunk (TODO: OVERWRITE)
-      fs.rename(files[$.fileParameterName].path, chunkFilename, function() {
-
-        // Do we have all the chunks?
-        var currentTestChunk = 1;
-        var numberOfChunks = Math.max(Math.floor(totalSize / (chunkSize * 1.0)), 1);
-        var testChunkExists = function() {
-          fs.exists(getChunkFilename(currentTestChunk, identifier), function(exists) {
-            if (exists) {
-              currentTestChunk++;
-              if (currentTestChunk > numberOfChunks) {
-                callback('done', filename, original_filename, identifier);
+      let tmpFileExist = fs.existsSync(files[$.fileParameterName].path)
+      if (tmpFileExist) {
+        fs.writeFile(chunkFilename, fs.readFileSync(files[$.fileParameterName].path), function() {
+          // Do we have all the chunks?
+          var currentTestChunk = 1;
+          var numberOfChunks = Math.max(Math.floor(totalSize / (chunkSize * 1.0)), 1);
+          var testChunkExists = function() {
+            fs.exists(getChunkFilename(currentTestChunk, identifier), function(exists) {
+              if (exists) {
+                currentTestChunk++;
+                if (currentTestChunk > numberOfChunks) {
+                  callback('done', filename, original_filename, identifier);
+                } else {
+                  // Recursion
+                  testChunkExists();
+                }
               } else {
-                // Recursion
-                testChunkExists();
+                callback('partly_done', filename, original_filename, identifier);
               }
-            } else {
-              callback('partly_done', filename, original_filename, identifier);
-            }
-          });
-        };
-        testChunkExists();
-      });
+            });
+          };
+          testChunkExists();
+        })
+      } else {
+        callback('tmp file not exists', null, null, null);
+      }
     } else {
       callback(validation, filename, original_filename, identifier);
     }
