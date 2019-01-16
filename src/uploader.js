@@ -101,6 +101,9 @@ Uploader.defaults = {
   initialPaused: false,
   processResponse: function (response, cb) {
     cb(null, response)
+  },
+  processParams: function (params) {
+    return params
   }
 }
 
@@ -269,7 +272,10 @@ utils.extend(Uploader.prototype, {
         return false
       }
     })
-    if (!outstanding && !preventEvents) {
+    // should check files now
+    // if now files in list
+    // should not trigger complete event
+    if (!outstanding && !preventEvents && this.files.length) {
       // All chunks have been uploaded, complete
       this._triggerAsync('complete')
     }
@@ -359,7 +365,9 @@ utils.extend(Uploader.prototype, {
         // first one - original mouse click event
         // second - input.click(), input is inside domNode
         domNode.addEventListener('click', function (e) {
-          if (e.target.tagName !== 'INPUT') return
+          if (domNode.tagName.toLowerCase() === 'label') {
+            return
+          }
           input.click()
         }, false)
       }

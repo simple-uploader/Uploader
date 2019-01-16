@@ -61,6 +61,9 @@ utils.extend(Chunk.prototype, {
   },
 
   getTarget: function (target, params) {
+    if (!params.length) {
+      return target
+    }
     if (target.indexOf('?') < 0) {
       target += '?'
     } else {
@@ -271,6 +274,9 @@ utils.extend(Chunk.prototype, {
     // Add data from the query options
     var query = utils.evalOpts(this.uploader.opts.query, this.file, this, isTest)
     query = utils.extend(this.getParams(), query)
+
+    // processParams
+    query = this.uploader.opts.processParams(query)
 
     var target = utils.evalOpts(this.uploader.opts.target, this.file, this, isTest)
     var data = null
