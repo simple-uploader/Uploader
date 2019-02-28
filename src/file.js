@@ -203,11 +203,24 @@ utils.extend(File.prototype, {
   _updateUploadedChunks: function (message, chunk) {
     var checkChunkUploaded = this.uploader.opts.checkChunkUploadedByResponse
     if (checkChunkUploaded) {
+      var xhr = chunk.xhr
       utils.each(this.chunks, function (_chunk) {
-        if (!_chunk.tested && checkChunkUploaded.call(this, _chunk, message)) {
-          _chunk.xhr = chunk.xhr
+        var uploaded = checkChunkUploaded.call(this, _chunk, message)
+        if (!_chunk.tested) {
+          if (_chunk === chunk && !uploaded) {
+            // fix the first chunk xhr status
+            // treated as success but checkChunkUploaded is false
+            // so the current chunk should be uploaded again
+            _chunk.xhr = null
+          }
+          if (uploaded) {
+            // first success and other chunks are uploaded
+            // then set xhr, so the uploaded chunks
+            // will be treated as success too
+            _chunk.xhr = xhr
+          }
+          _chunk.tested = true
         }
-        _chunk.tested = true
       }, this)
       if (!this._firstResponse) {
         this._firstResponse = true
