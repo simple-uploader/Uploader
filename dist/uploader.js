@@ -1,6 +1,6 @@
 /*!
  * Uploader - Uploader library implements html5 file upload and provides multiple simultaneous, stable, fault tolerant and resumable uploads
- * @version v0.4.2
+ * @version v0.5.0
  * @author dolymood <dolymood@gmail.com>
  * @link https://github.com/simple-uploader/Uploader
  * @license MIT
@@ -377,7 +377,7 @@ var event = _dereq_('./event')
 var File = _dereq_('./file')
 var Chunk = _dereq_('./chunk')
 
-var version = '0.4.2'
+var version = '0.5.0'
 
 var isServer = typeof window === 'undefined'
 
@@ -1093,11 +1093,24 @@ utils.extend(File.prototype, {
   _updateUploadedChunks: function (message, chunk) {
     var checkChunkUploaded = this.uploader.opts.checkChunkUploadedByResponse
     if (checkChunkUploaded) {
+      var xhr = chunk.xhr
       utils.each(this.chunks, function (_chunk) {
-        if (!_chunk.tested && checkChunkUploaded.call(this, _chunk, message)) {
-          _chunk.xhr = chunk.xhr
+        if (!_chunk.tested) {
+          var uploaded = checkChunkUploaded.call(this, _chunk, message)
+          if (_chunk === chunk && !uploaded) {
+            // fix the first chunk xhr status
+            // treated as success but checkChunkUploaded is false
+            // so the current chunk should be uploaded again
+            _chunk.xhr = null
+          }
+          if (uploaded) {
+            // first success and other chunks are uploaded
+            // then set xhr, so the uploaded chunks
+            // will be treated as success too
+            _chunk.xhr = xhr
+          }
+          _chunk.tested = true
         }
-        _chunk.tested = true
       }, this)
       if (!this._firstResponse) {
         this._firstResponse = true
