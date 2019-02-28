@@ -607,7 +607,7 @@ describe('upload file', function () {
 
     expect(requests.length).toBe(1)
     expect(requests[0].method).toBe('GET')
-    requests[0].respond(200, [], '{"uploaded_chunks": [1, 2, 4, 5, 9]}')
+    requests[0].respond(200, [], '{"uploaded_chunks": [2, 3, 4, 5, 9]}')
 
     expect(requests.length).toBe(1 + 3)
     expect(requests[1].method).toBe('POST')

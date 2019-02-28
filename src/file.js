@@ -205,8 +205,8 @@ utils.extend(File.prototype, {
     if (checkChunkUploaded) {
       var xhr = chunk.xhr
       utils.each(this.chunks, function (_chunk) {
-        var uploaded = checkChunkUploaded.call(this, _chunk, message)
         if (!_chunk.tested) {
+          var uploaded = checkChunkUploaded.call(this, _chunk, message)
           if (_chunk === chunk && !uploaded) {
             // fix the first chunk xhr status
             // treated as success but checkChunkUploaded is false
