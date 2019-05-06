@@ -295,7 +295,7 @@ utils.extend(Chunk.prototype, {
         data.append(k, v)
       })
       if (typeof blob !== 'undefined') {
-        data.append(this.uploader.opts.fileParameterName, blob, this.file.name) 
+        data.append(this.uploader.opts.fileParameterName, blob, this.file.name)
       }
     }
 
