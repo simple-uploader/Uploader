@@ -152,8 +152,8 @@ var r = new Uploader({ opt1: 'val', ...})
 202]`。
 * `permanentErrors` 认为是出错的响应码，默认 `[404, 415, 500, 501]`。
 * `initialPaused` 初始文件 paused 状态，默认 `false`。
-* `processResponse` 处理请求结果，默认 `function (response, cb) { cb(null, response) }`。
-* `processParams` 处理请求参数，默认 `function (params) {return params}`，一般用于修改参数名字或者删除参数。
+* `processResponse` 处理请求结果，默认 `function (response, cb) { cb(null, response) }`。 0.5.2版本后，`processResponse` 会传入更多参数：(response, cb, Uploader.File, Uploader.Chunk)。
+* `processParams` 处理请求参数，默认 `function (params) {return params}`，一般用于修改参数名字或者删除参数。0.5.2版本后，`processParams` 会有更多参数：(params, Uploader.File, Uploader.Chunk, isTest)。
 
 #### 属性
 

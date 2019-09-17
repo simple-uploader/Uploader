@@ -159,8 +159,8 @@ parameter must be adjusted together with `progressCallbacksInterval` parameter. 
 202]`)
 * `permanentErrors` Response fails if response status is in this list (Default: `[404, 415, 500, 501]`)
 * `initialPaused` Initial paused state, default `false`.
-* `processResponse` Process xhr response, default `function (response, cb) { cb(null, response) }`.
-* `processParams` Process xhr params, default `function (params) {return params}`.
+* `processResponse` Process xhr response, default `function (response, cb) { cb(null, response) }`. After 0.5.2, `processResponse` will be called with arguments: (response, cb, Uploader.File, Uploader.Chunk).
+* `processParams` Process xhr params, default `function (params) {return params}`. After 0.5.2, `processParams` will be called with arguments: (params, Uploader.File, Uploader.Chunk, isTest).
 
 #### Properties
 
