@@ -192,7 +192,7 @@ utils.extend(Chunk.prototype, {
             $.send()
           }
         }
-      })
+      }, $.file, $)
     }
   },
 
