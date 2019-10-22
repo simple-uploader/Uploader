@@ -144,7 +144,7 @@ utils.extend(Chunk.prototype, {
 
     // Set up request and listen for event
     this.xhr = new XMLHttpRequest()
-    this.xhr.upload.addEventListener('progress', progressHandler, false)
+    this.xhr.addEventListener('progress', progressHandler, false)
     this.xhr.addEventListener('load', doneHandler, false)
     this.xhr.addEventListener('error', doneHandler, false)
 
