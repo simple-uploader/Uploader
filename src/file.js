@@ -114,7 +114,7 @@ utils.extend(File.prototype, {
     var currentSpeeds = 0
     var num = 0
     this._eachAccess(function (file) {
-      if (!file.paused && !file.error) {
+      if (!file.paused && !file.error && file.averageSpeed > 0 && file.currentSpeed > 0) {
         num += 1
         averageSpeeds += file.averageSpeed || 0
         currentSpeeds += file.currentSpeed || 0
