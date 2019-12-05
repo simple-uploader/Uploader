@@ -1,6 +1,6 @@
 /*!
  * Uploader - Uploader library implements html5 file upload and provides multiple simultaneous, stable, fault tolerant and resumable uploads
- * @version v0.5.3
+ * @version v0.5.4
  * @author dolymood <dolymood@gmail.com>
  * @link https://github.com/simple-uploader/Uploader
  * @license MIT
@@ -379,7 +379,7 @@ var event = _dereq_('./event')
 var File = _dereq_('./file')
 var Chunk = _dereq_('./chunk')
 
-var version = '0.5.3'
+var version = '0.5.4'
 
 var isServer = typeof window === 'undefined'
 
@@ -930,6 +930,7 @@ function File (uploader, file, parent) {
   this.error = false
   this.allError = false
   this.aborted = false
+  this.completed = false
   this.averageSpeed = 0
   this.currentSpeed = 0
   this._lastProgressCallback = Date.now()
@@ -1001,38 +1002,18 @@ utils.extend(File.prototype, {
     }
   },
 
-  _measureSpeed: function (hard) {
-    var averageSpeeds = 0
-    var currentSpeeds = 0
-    var num = 0
-    this._eachAccess(function (file) {
-      if (!file.paused && !file.error && file.averageSpeed > 0 && file.currentSpeed > 0) {
-        num += 1
-        averageSpeeds += file.averageSpeed || 0
-        currentSpeeds += file.currentSpeed || 0
-      }
-    }, function () {
-      var timeSpan = Date.now() - this._lastProgressCallback
-      if (!timeSpan) {
-        return
-      }
-      var smoothingFactor = this.uploader.opts.speedSmoothingFactor
-      var uploaded = this.sizeUploaded()
-      // Prevent negative upload speed after file upload resume
-      this.currentSpeed = Math.max((uploaded - this._prevUploadedSize) / timeSpan * 1000, 0)
-      this.averageSpeed = smoothingFactor * this.currentSpeed + (1 - smoothingFactor) * this.averageSpeed
-      this._prevUploadedSize = uploaded
-    })
-    if (this.isFolder) {
-      if (num) {
-        this.currentSpeed = currentSpeeds / num
-        this.averageSpeed = averageSpeeds / num
-      } else {
-        this.currentSpeed = 0
-        this.averageSpeed = 0
-      }
+  _measureSpeed: function () {
+    var smoothingFactor = this.uploader.opts.speedSmoothingFactor
+    var timeSpan = Date.now() - this._lastProgressCallback
+    if (!timeSpan) {
+      return
     }
-    if (this.parent && (hard || this.parent._checkProgress())) {
+    var uploaded = this.sizeUploaded()
+    // Prevent negative upload speed after file upload resume
+    this.currentSpeed = Math.max((uploaded - this._prevUploadedSize) / timeSpan * 1000, 0)
+    this.averageSpeed = smoothingFactor * this.currentSpeed + (1 - smoothingFactor) * this.averageSpeed
+    this._prevUploadedSize = uploaded
+    if (this.parent && this.parent._checkProgress()) {
       this.parent._measureSpeed()
     }
   },
@@ -1046,8 +1027,8 @@ utils.extend(File.prototype, {
     var STATUS = Chunk.STATUS
     var that = this
     var rootFile = this.getRoot()
-    var triggerProgress = function (hard) {
-      that._measureSpeed(hard)
+    var triggerProgress = function () {
+      that._measureSpeed()
       uploader._trigger('fileProgress', rootFile, that, chunk)
       that._lastProgressCallback = Date.now()
     }
@@ -1075,7 +1056,7 @@ utils.extend(File.prototype, {
         }
         if (this.isComplete()) {
           clearTimeout(this._progeressId)
-          triggerProgress(true)
+          triggerProgress()
           this.currentSpeed = 0
           this.averageSpeed = 0
           uploader._trigger('fileSuccess', rootFile, this, message, chunk)
@@ -1154,23 +1135,26 @@ utils.extend(File.prototype, {
   },
 
   isComplete: function () {
-    var outstanding = false
-    this._eachAccess(function (file) {
-      if (!file.isComplete()) {
-        outstanding = true
-        return false
-      }
-    }, function () {
-      var STATUS = Chunk.STATUS
-      utils.each(this.chunks, function (chunk) {
-        var status = chunk.status()
-        if (status === STATUS.PENDING || status === STATUS.UPLOADING || status === STATUS.READING || chunk.preprocessState === 1 || chunk.readState === 1) {
+    if (!this.completed) {
+      var outstanding = false
+      this._eachAccess(function (file) {
+        if (!file.isComplete()) {
           outstanding = true
           return false
         }
+      }, function () {
+        var STATUS = Chunk.STATUS
+        utils.each(this.chunks, function (chunk) {
+          var status = chunk.status()
+          if (status === STATUS.PENDING || status === STATUS.UPLOADING || status === STATUS.READING || chunk.preprocessState === 1 || chunk.readState === 1) {
+            outstanding = true
+            return false
+          }
+        })
       })
-    })
-    return !outstanding
+      this.completed = !outstanding
+    }
+    return this.completed
   },
 
   isUploading: function () {
