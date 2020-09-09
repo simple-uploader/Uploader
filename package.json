@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "browserify-versionify": "^1.0.6",
-    "codecov": "^2.2.0",
+    "codecov": "^3.6.5",
     "eslint": "^4.2.0",
     "eslint-config-standard": "^6.1.0",
     "eslint-plugin-promise": "^3.5.0",
