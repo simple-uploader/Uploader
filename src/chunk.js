@@ -175,7 +175,7 @@ utils.extend(Chunk.prototype, {
         }
         var status = $.status()
         if (status === STATUS.SUCCESS || status === STATUS.ERROR) {
-          delete this.data
+          // delete this.data
           $._event(status, res)
           status === STATUS.ERROR && $.uploader.uploadNextChunk()
         } else {
