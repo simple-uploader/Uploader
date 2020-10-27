@@ -251,14 +251,18 @@ utils.extend(File.prototype, {
           return false
         }
       }, function () {
-        var STATUS = Chunk.STATUS
-        utils.each(this.chunks, function (chunk) {
-          var status = chunk.status()
-          if (status === STATUS.PENDING || status === STATUS.UPLOADING || status === STATUS.READING || chunk.preprocessState === 1 || chunk.readState === 1) {
-            outstanding = true
-            return false
-          }
-        })
+        if (this.error) {
+          outstanding = true
+        } else {
+          var STATUS = Chunk.STATUS
+          utils.each(this.chunks, function (chunk) {
+            var status = chunk.status()
+            if (status === STATUS.ERROR || status === STATUS.PENDING || status === STATUS.UPLOADING || status === STATUS.READING || chunk.preprocessState === 1 || chunk.readState === 1) {
+              outstanding = true
+              return false
+            }
+          })
+        }
       })
       this.completed = !outstanding
     }
