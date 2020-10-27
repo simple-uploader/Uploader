@@ -264,7 +264,7 @@ describe('upload file', function () {
     expect(retry.calls.count()).toBe(2)
 
     expect(file.error).toBeTruthy()
-    expect(file.isComplete()).toBeTruthy()
+    expect(file.isComplete()).toBeFalsy()
     expect(file.isUploading()).toBeFalsy()
     expect(file.progress()).toBe(1)
   })
