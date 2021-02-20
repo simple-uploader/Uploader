@@ -23,6 +23,10 @@ module.exports = flow = function(temporaryFolder) {
     // What would the file name be?
     return path.resolve($.temporaryFolder, './uploader-' + identifier + '.' + chunkNumber);
   }
+  function getSaveFilename(filename,identifier) {
+    // [TODO:Same name file]
+    return path.resolve($.temporaryFolder, './'+filename);
+  }
 
   function validateRequest(chunkNumber, chunkSize, totalSize, identifier, filename, fileSize) {
     // Clean up the identifier
@@ -109,28 +113,39 @@ module.exports = flow = function(temporaryFolder) {
       var chunkFilename = getChunkFilename(chunkNumber, identifier);
 
       // Save the chunk (TODO: OVERWRITE)
-      fs.rename(files[$.fileParameterName].path, chunkFilename, function() {
-
-        // Do we have all the chunks?
-        var currentTestChunk = 1;
-        var numberOfChunks = Math.max(Math.floor(totalSize / (chunkSize * 1.0)), 1);
-        var testChunkExists = function() {
-          fs.exists(getChunkFilename(currentTestChunk, identifier), function(exists) {
-            if (exists) {
-              currentTestChunk++;
-              if (currentTestChunk > numberOfChunks) {
-                callback('done', filename, original_filename, identifier);
-              } else {
-                // Recursion
-                testChunkExists();
-              }
-            } else {
-              callback('partly_done', filename, original_filename, identifier);
-            }
-          });
-        };
-        testChunkExists();
+      // Bug: fs.rename could throw error:'cross-device link not permitted' with windows default temp folder option
+      // FIX: use Stream functions instead of rename function
+      var readStream=fs.createReadStream(files[$.fileParameterName].path);
+      var writeStream=fs.createWriteStream(chunkFilename);
+      readStream.pipe(writeStream);
+      readStream.on('end',function(){        
+       fs.unlinkSync(files[$.fileParameterName].path);
       });
+      
+      // Do we have all the chunks?
+      var currentTestChunk = 1;
+      var numberOfChunks = Math.max(Math.floor(totalSize / (chunkSize * 1.0)), 1);
+      var testChunkExists = function() {
+        let ChunkFilename=getChunkFilename(currentTestChunk, identifier);
+        fs.exists(ChunkFilename, function(exists) {
+          if (exists) {
+            currentTestChunk++;
+            if (currentTestChunk > numberOfChunks) {
+              var writableStream = fs.createWriteStream(getSaveFilename(filename,identifier));
+              $.write(identifier,writableStream,{});
+              $.clean(identifier,{});
+              callback('done', filename, original_filename, identifier);
+            } else {
+              // Recursion
+              testChunkExists();
+            }
+          } else {
+            callback('partly_done', filename, original_filename, identifier);
+          }
+        });
+      };
+      testChunkExists();
+
     } else {
       callback(validation, filename, original_filename, identifier);
     }
