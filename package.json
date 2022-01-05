@@ -1,6 +1,6 @@
 {
   "name": "simple-uploader.js",
-  "version": "0.5.6",
+  "version": "0.6.0",
   "author": "dolymood <dolymood@gmail.com>",
   "license": "MIT",
   "description": "Uploader library implements html5 file upload and provides multiple simultaneous, stable, fault tolerant and resumable uploads",
@@ -18,7 +18,7 @@
     "javascript upload",
     "upload"
   ],
-  "main": "src/uploader.js",
+  "main": "dist/uploader.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/simple-uploader/Uploader.git"
