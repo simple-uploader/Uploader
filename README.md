@@ -86,7 +86,7 @@ To handle the state of upload chunks, a number of extra parameters are sent alon
 
 * `chunkNumber`: The index of the chunk in the current upload. First chunk is `1` (no base-0 counting here).
 * `totalChunks`: The total number of chunks.
-* `chunkSize`: The general chunk size. Using this value and `totalSize` you can calculate the total number of chunks. Please note that the size of the data received in the HTTP might be lower than `chunkSize` of this for the last chunk for a file.
+* `chunkSize`: The general chunk size. Using this value and `totalSize` you can calculate the total number of chunks. Please note that the size of the data received in the HTTP might be greater than `chunkSize` of this for the last chunk for a file.
 * `totalSize`: The total file size.
 * `identifier`: A unique identifier for the file contained in the request.
 * `filename`: The original file name (since a bug in Firefox results in the file name not being transmitted in chunk multipart posts).
