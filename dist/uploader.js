@@ -20,7 +20,7 @@ function Chunk (uploader, file, offset) {
   this.readState = 0
   this.loaded = 0
   this.total = 0
-  this.chunkSize = this.uploader.opts.chunkSize
+  this.chunkSize = utils.evalOpts(uploader.opts.chunkSize, file, this)
   this.startByte = this.offset * this.chunkSize
   this.endByte = this.computeEndByte()
   this.xhr = null
@@ -58,7 +58,7 @@ utils.extend(Chunk.prototype, {
   getParams: function () {
     return {
       chunkNumber: this.offset + 1,
-      chunkSize: this.uploader.opts.chunkSize,
+      chunkSize: this.chunkSize,
       currentChunkSize: this.endByte - this.startByte,
       totalSize: this.file.size,
       identifier: this.file.uniqueIdentifier,
