@@ -234,7 +234,7 @@ var r = new Uploader({ opt1: 'val', ...})
 
 * `.getRoot()` 得到当前文件所属的根文件，这个根文件就是包含在 `uploader.fileList` 中的.
 * `.progress()` 返回一个 0 到 1 的数字，代表当前上传进度。
-* `.pause()` 暂停上窜文件。
+* `.pause()` 暂停上传文件。
 * `.resume()` 继续上传文件。
 * `.cancel()` 取消上传且从文件列表中移除。
 * `.retry()` 重新上传文件。
