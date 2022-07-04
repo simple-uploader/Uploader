@@ -136,7 +136,7 @@ var r = new Uploader({ opt1: 'val', ...})
 * `method` 当上传的时候所使用的是方式，可选 `multipart`、`octet`，默认 `multipart`，参考 [multipart vs octet](https://stackoverflow.com/questions/29347234/multipart-form-data-vs-application-octet-stream)。
 * `testMethod` 测试的时候使用的 HTTP 方法，可以是字符串或者函数，如果是函数的话，则会传入 `Uploader.File` 实例、当前块 `Uploader.Chunk`，默认 `GET`。
 * `uploadMethod` 真正上传的时候使用的 HTTP 方法，可以是字符串或者函数，如果是函数的话，则会传入 `Uploader.File` 实例、当前块 `Uploader.Chunk`，默认 `POST`。
-* `allowDuplicateUploads ` 如果说一个文件以及上传过了是否还允许再次上传。默认的话如果已经上传了，除非你移除了否则是不会再次重新上传的，所以也就是默认值为 `false`。
+* `allowDuplicateUploads ` 如果说一个文件已经上传过了是否还允许再次上传。默认的话如果已经上传了，除非你移除了否则是不会再次重新上传的，所以也就是默认值为 `false`。
 * `prioritizeFirstAndLastChunk` 对于文件而言是否高优先级发送第一个和最后一个块。一般用来发送到服务端，然后判断是否是合法文件；例如图片或者视频的 meta 数据一般放在文件第一部分，这样可以根据第一个块就能知道是否支持；默认 `false`。
 * `testChunks` 是否测试每个块是否在服务端已经上传了，主要用来实现秒传、跨浏览器上传等，默认 `true`。
 * `preprocess` 可选的函数，每个块在测试以及上传前会被调用，参数就是当前上传块实例 `Uploader.Chunk`，注意在这个函数中你需要调用当前上传块实例的 `preprocessFinished` 方法，默认 `null`。
