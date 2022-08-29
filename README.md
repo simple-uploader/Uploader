@@ -4,7 +4,7 @@
 
 [中文](./README_zh-CN.md)
 
-![QQ](https://github.com/simple-uploader/Uploader/blob/develop/assets/simple-uploader-QQ-2.png?raw=true)
+![QQ](https://github.com/simple-uploader/Uploader/blob/develop/assets/simple-uploader-QQ-3.png?raw=true)
 
 A JavaScript library providing multiple simultaneous, stable, fault-tolerant and resumable/restartable file uploads via the HTML5 File API.
 
