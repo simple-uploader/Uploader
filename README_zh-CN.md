@@ -2,7 +2,7 @@
 
 [![Sauce Test Status](https://saucelabs.com/browser-matrix/uploader.svg)](https://saucelabs.com/u/uploader)
 
-![QQ](https://github.com/simple-uploader/Uploader/blob/develop/assets/simple-uploader-QQ-2.png?raw=true)
+![QQ](https://github.com/simple-uploader/Uploader/blob/develop/assets/simple-uploader-QQ-3.png?raw=true)
 
 simple-uploader.js（也称 Uploader) 是一个上传库，支持多并发上传，文件夹、拖拽、可暂停继续、秒传、分块上传、出错自动重传、手工重传、进度、剩余时间、上传速度等特性；该上传库依赖 HTML5 File API。
 
