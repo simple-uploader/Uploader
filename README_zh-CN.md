@@ -239,7 +239,7 @@ var r = new Uploader({ opt1: 'val', ...})
 * `.cancel()` 取消上传且从文件列表中移除。
 * `.retry()` 重新上传文件。
 * `.bootstrap()` 重新初始化 `Uploader.File` 对象的状态，包括重新分块，重新创建新的 XMLHttpRequest 实例。
-* `.isUploading()` 文件是否扔在上传中。
+* `.isUploading()` 文件是否仍在上传中。
 * `.isComplete()` 文件是否已经上传完成。
 * `.sizeUploaded()` 已经上传大小。
 * `.timeRemaining()` 剩余时间，基于平均速度的，如果说平均速度为 0，那么值就是 `Number.POSITIVE_INFINITY`。
