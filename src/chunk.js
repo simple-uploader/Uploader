@@ -80,20 +80,20 @@ utils.extend(Chunk.prototype, {
     var data = this.prepareXhrRequest(testMethod, true)
     this.xhr.send(data)
 
-    var $ = this
+    var that = this
     function testHandler (event) {
-      var status = $.status(true)
+      var status = that.status(true)
       if (status === STATUS.ERROR) {
-        $._event(status, $.message())
-        $.uploader.uploadNextChunk()
+        that._event(status, that.message())
+        that.uploader.uploadNextChunk()
       } else if (status === STATUS.SUCCESS) {
-        $._event(status, $.message())
-        $.tested = true
-      } else if (!$.file.paused) {
+        that._event(status, that.message())
+        that.tested = true
+      } else if (!that.file.paused) {
         // Error might be caused by file pause method
         // Chunks does not exist on the server side
-        $.tested = true
-        $.send()
+        that.tested = true
+        that.send()
       }
     }
   },
@@ -152,47 +152,47 @@ utils.extend(Chunk.prototype, {
     var data = this.prepareXhrRequest(uploadMethod, false, this.uploader.opts.method, this.bytes)
     this.xhr.send(data)
 
-    var $ = this
+    var that = this
     function progressHandler (event) {
       if (event.lengthComputable) {
-        $.loaded = event.loaded
-        $.total = event.total
+        that.loaded = event.loaded
+        that.total = event.total
       }
-      $._event(STATUS.PROGRESS, event)
+      that._event(STATUS.PROGRESS, event)
     }
 
     function doneHandler (event) {
-      var msg = $.message()
-      $.processingResponse = true
-      $.uploader.opts.processResponse(msg, function (err, res) {
-        $.processingResponse = false
-        if (!$.xhr) {
+      var msg = that.message()
+      that.processingResponse = true
+      that.uploader.opts.processResponse(msg, function (err, res) {
+        that.processingResponse = false
+        if (!that.xhr) {
           return
         }
-        $.processedState = {
+        that.processedState = {
           err: err,
           res: res
         }
-        var status = $.status()
+        var status = that.status()
         if (status === STATUS.SUCCESS || status === STATUS.ERROR) {
           // delete this.data
-          $._event(status, res)
-          status === STATUS.ERROR && $.uploader.uploadNextChunk()
+          that._event(status, res)
+          status === STATUS.ERROR && that.uploader.uploadNextChunk()
         } else {
-          $._event(STATUS.RETRY, res)
-          $.pendingRetry = true
-          $.abort()
-          $.retries++
-          var retryInterval = $.uploader.opts.chunkRetryInterval
+          that._event(STATUS.RETRY, res)
+          that.pendingRetry = true
+          that.abort()
+          that.retries++
+          var retryInterval = that.uploader.opts.chunkRetryInterval
           if (retryInterval !== null) {
             setTimeout(function () {
-              $.send()
+              that.send()
             }, retryInterval)
           } else {
-            $.send()
+            that.send()
           }
         }
-      }, $.file, $)
+      }, that.file, that)
     }
   },
 
